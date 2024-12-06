@@ -5,13 +5,15 @@ Content-Type: application/json
     "name": "debezium-postgres-customer-source-connector",
     "config": {
         "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
-        "tasks.max": "1",
-        "database.hostname": "<your-postgres-host>",
-        "database.port": "<your-postgres-port>",
-        "database.user": "<your-db-user>",
-        "database.password": "<your-db-password>",
-        "database.dbname": "customer",
-        "database.server.name": "postgres",
-        "table.include.list": "public.customer"
+        "database.hostname": "customer-database",
+        "database.port": "5434",
+        "database.user": "customer_user",
+        "database.password": "customer_password",
+        "database.dbname" : "customer_db",
+        "plugin.name": "pgoutput",
+        "key.converter.schema.registry.url": "http://schema-registry:8081",
+        "value.converter.schema.registry.url": "http://schema-registry:8081",
+        "key.converter": "io.confluent.connect.avro.AvroConverter",
+        "value.converter": "io.confluent.connect.avro.AvroConverter"
     }
 }

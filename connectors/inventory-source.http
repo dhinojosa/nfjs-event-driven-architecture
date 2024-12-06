@@ -2,16 +2,18 @@ POST http://connectors:8083/connectors
 Content-Type: application/json
 
 {
-    "name": "debezium-postgres-customer-source-connector",
+    "name": "debezium-postgres-inventory-source-connector",
     "config": {
         "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
-        "tasks.max": "1",
-        "database.hostname": "<your-postgres-host>",
-        "database.port": "<your-postgres-port>",
-        "database.user": "<your-db-user>",
-        "database.password": "<your-db-password>",
-        "database.dbname": "customer",
-        "database.server.name": "postgres",
-        "table.include.list": "public.customer"
+        "database.hostname": "inventory-database",
+        "database.port": "5433",
+        "database.user": "inventory_user",
+        "database.password": "inventory_password",
+        "database.dbname" : "inventory_db",
+        "plugin.name": "pgoutput",
+        "key.converter.schema.registry.url": "http://schema-registry:8081",
+        "value.converter.schema.registry.url": "http://schema-registry:8081",
+        "key.converter": "io.confluent.connect.avro.AvroConverter",
+        "value.converter": "io.confluent.connect.avro.AvroConverter"
     }
 }
