@@ -9,11 +9,16 @@ Content-Type: application/json
         "database.port": "5433",
         "database.user": "inventory_user",
         "database.password": "inventory_password",
-        "database.dbname" : "inventory_db",
+        "database.dbname": "inventory_db",
         "plugin.name": "pgoutput",
         "key.converter.schema.registry.url": "http://schema-registry:8081",
         "value.converter.schema.registry.url": "http://schema-registry:8081",
         "key.converter": "io.confluent.connect.avro.AvroConverter",
-        "value.converter": "io.confluent.connect.avro.AvroConverter"
+        "value.converter": "io.confluent.connect.avro.AvroConverter",
+
+        "transforms": "route",
+        "transforms.route.type": "org.apache.kafka.connect.transforms.RegexRouter",
+        "transforms.route.regex": "postgres_.public.inventory",
+        "transforms.route.replacement": "inventory"
     }
 }
