@@ -6,7 +6,7 @@ Content-Type: application/json
     "config": {
         "connector.class": "io.debezium.connector.jdbc.JdbcSinkConnector",
         "tasks.max": "1",
-        "connection.url": "jdbc:postgresql://inventory-database:5433/db",
+        "connection.url": "jdbc:postgresql://inventory-database:5432/inventory_db",
         "connection.username": "inventory_user",
         "connection.password": "inventory_password",
         "insert.mode": "upsert",

@@ -1,4 +1,4 @@
-POST http://connectors:8083/connectors
+POST http://localhost:8083/connectors
 Content-Type: application/json
 
 {
@@ -6,11 +6,12 @@ Content-Type: application/json
     "config": {
         "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
         "database.hostname": "customer-database",
-        "database.port": "5434",
+        "database.port": "5432",
         "database.user": "customer_user",
         "database.password": "customer_password",
         "database.dbname" : "customer_db",
         "plugin.name": "pgoutput",
+        "topic.prefix": "postgres_",
         "key.converter.schema.registry.url": "http://schema-registry:8081",
         "value.converter.schema.registry.url": "http://schema-registry:8081",
         "key.converter": "io.confluent.connect.avro.AvroConverter",
