@@ -1,0 +1,10 @@
+{
+    "type": "record",
+    "name": "OrderItemRepartition",
+    "namespace": "com.evolutionnext.warehouse",
+    "fields": [
+        {"name": "productId", "type": "string"},
+        {"name": "orderId", "type": "string"},
+        {"name": "orderItem", "type": "com.evolutionnext.order.OrderItem"}
+    ]
+}

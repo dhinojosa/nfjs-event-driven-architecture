@@ -1,0 +1,22 @@
+{
+    "type": "record",
+    "name": "OrderShipped",
+    "namespace": "com.evolutionnext.order",
+    "fields": [
+        {"name": "orderId", "type": "string"},
+        {"name": "shippingDate", "type": {"type": "long", "logicalType": "timestamp-millis"}},
+        {"name": "trackingNumber", "type": "string"},
+        {"name": "carrier", "type": "string"},
+        {"name": "shippingAddress", "type": {
+            "type": "record",
+            "name": "Address",
+            "fields": [
+                {"name": "street", "type": "string"},
+                {"name": "city", "type": "string"},
+                {"name": "postalCode", "type": "string"},
+                {"name": "country", "type": "string"}
+            ]
+        }
+        }
+    ]
+}

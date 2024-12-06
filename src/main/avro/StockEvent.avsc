@@ -1,0 +1,14 @@
+{
+    "type": "record",
+    "name": "StockEvent",
+    "namespace": "com.evolutionnext.warehouse",
+    "fields": [
+        {
+            "name": "event",
+            "type": [
+                "com.evolutionnext.warehouse.StockReleased",
+                "com.evolutionnext.warehouse.StockReserved"
+            ]
+        }
+    ]
+}

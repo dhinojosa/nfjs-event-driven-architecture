@@ -1,0 +1,12 @@
+{
+    "type": "record",
+    "name": "StockReserved",
+    "namespace": "com.evolutionnext.warehouse",
+    "fields": [
+        {"name": "orderId", "type": "string"},
+        {"name": "productId", "type": "string"},
+        {"name": "quantityReserved", "type": "int"},
+        {"name": "quantityInInventory", "type": "int"},
+        {"name": "reservationDate", "type": {"type": "long", "logicalType": "timestamp-millis"}}
+    ]
+}

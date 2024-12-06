@@ -1,0 +1,51 @@
+{
+    "type": "record",
+    "name": "Order",
+    "namespace": "com.evolutionnext.order",
+    "fields": [
+        {
+            "name": "orderId",
+            "type": "string"
+        },
+        {
+            "name": "customerId",
+            "type": "string"
+        },
+        {
+            "name": "orderItems",
+            "type": {
+                "type": "array",
+                "items": {
+                    "type": "com.evolutionnext.order.OrderItem",
+                    "name": "OrderItem",
+                    "namespace": "com.evolutionnext.order"
+                }
+            }
+        },
+        {
+            "name": "creditCard",
+            "type": {
+                "type": "record",
+                "name": "CreditCard",
+                "fields": [
+                    {
+                        "name": "number",
+                        "type": "string"
+                    },
+                    {
+                        "name": "type",
+                        "type": {
+                            "type": "enum",
+                            "name": "CardType",
+                            "symbols": [
+                                "Visa",
+                                "MasterCard",
+                                "Amex"
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

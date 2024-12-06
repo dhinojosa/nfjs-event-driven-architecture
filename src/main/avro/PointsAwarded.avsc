@@ -1,0 +1,15 @@
+{
+    "type": "record",
+    "name": "PointsAwarded",
+    "namespace": "com.evolutionnext.loyalty",
+    "fields": [
+        {
+            "name": "customerID",
+            "type": "string"
+        },
+        {
+            "name": "points",
+            "type": "int"
+        }
+    ]
+}

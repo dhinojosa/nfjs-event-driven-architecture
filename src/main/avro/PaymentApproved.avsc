@@ -1,0 +1,13 @@
+{
+    "type": "record",
+    "name": "PaymentApproved",
+    "namespace": "com.evolutionnext.payment",
+    "fields": [
+        {"name": "orderId", "type": "string"},
+        {"name": "customerId", "type": "string"},
+        {"name": "paymentAmount", "type": "double"},
+        {"name": "paymentMethod", "type": "string"},
+        {"name": "transactionId", "type": "string"},
+        {"name": "paymentDate", "type": {"type": "long", "logicalType": "timestamp-millis"}}
+    ]
+}

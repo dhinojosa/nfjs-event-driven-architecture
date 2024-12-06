@@ -1,0 +1,10 @@
+{
+    "type": "record",
+    "name": "OrderCancelled",
+    "namespace": "com.evolutionnext.order",
+    "fields": [
+        {"name": "orderId", "type": "string"},
+        {"name": "cancellationDate", "type": {"type": "long", "logicalType": "timestamp-millis"}},
+        {"name": "reason", "type": "string"}
+    ]
+}
