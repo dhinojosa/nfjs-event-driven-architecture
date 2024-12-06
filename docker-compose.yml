@@ -207,6 +207,10 @@ services:
             - "5434:5432"
         volumes:
             - ./init-customerdb:/docker-entrypoint-initdb.d/
+        command: >
+          postgres -c wal_level=logical
+                   -c max_replication_slots=10
+                   -c max_wal_senders=10
 
     inventory-database:
         image: postgres:latest
@@ -219,6 +223,10 @@ services:
             - "5433:5432"
         volumes:
             - ./init-inventorydb:/docker-entrypoint-initdb.d/
+        command: >
+          postgres -c wal_level=logical
+                   -c max_replication_slots=10
+                   -c max_wal_senders=10
 
     topic-creator:
         image: confluentinc/cp-kafka:7.6.1
