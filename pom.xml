@@ -6,19 +6,19 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.evolutionnext</groupId>
-    <artifactId>nfjs-kafka-full-day</artifactId>
+    <artifactId>nfjs-event-driven-architecture</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <name>nfjs-kafka-full-day</name>
-    <url>https://github.com/dhinojosa/nfjs-kafka-full-day</url>
+    <url>https://github.com/dhinojosa/nfjs-event-driven-architecture</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <kafka.version>3.3.1</kafka.version>
-        <avro.version>1.11.0</avro.version>
-        <confluent.version>6.1.0</confluent.version>
+        <kafka.version>3.9.0</kafka.version>
+        <avro.version>1.11.4</avro.version>
+        <confluent.version>7.8.0</confluent.version>
     </properties>
 
     <!--necessary to resolve confluent dependencies-->
@@ -45,7 +45,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.5.1</version>
+            <version>42.7.4</version>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
@@ -133,8 +133,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <source>21</source>
+                    <target>21</target>
                 </configuration>
             </plugin>
             <plugin>
