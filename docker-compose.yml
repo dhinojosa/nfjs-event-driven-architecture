@@ -173,8 +173,6 @@ services:
             - ./lab_book:/usr/share/nginx/html
     postgres:
         image: dhinojosa/postgresql-outbox
-        hostname: postgres
-        container_name: postgres
         ports:
             - "5432:5432"
     mongo:
