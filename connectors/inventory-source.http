@@ -1,0 +1,17 @@
+POST http://connectors:8083/connectors
+Content-Type: application/json
+
+{
+    "name": "debezium-postgres-customer-source-connector",
+    "config": {
+        "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+        "tasks.max": "1",
+        "database.hostname": "<your-postgres-host>",
+        "database.port": "<your-postgres-port>",
+        "database.user": "<your-db-user>",
+        "database.password": "<your-db-password>",
+        "database.dbname": "customer",
+        "database.server.name": "postgres",
+        "table.include.list": "public.customer"
+    }
+}
