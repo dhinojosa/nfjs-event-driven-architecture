@@ -5,7 +5,7 @@
 
 tasks:
     -   name: Install Temurin 21
-    -   before: sdk install java 21-tem
+    -   before: sdk install java 21-tem < /dev/null
     -   name: Setup & Build
         init: mvn verify -DskipTests=true
 vscode:
