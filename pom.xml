@@ -111,20 +111,26 @@
             <plugin>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro-maven-plugin</artifactId>
-                <version>1.8.2</version>
+                <version>1.11.3</version>
                 <executions>
                     <execution>
-                        <phase>generate-sources</phase>
                         <goals>
                             <goal>schema</goal>
                         </goals>
+                        <phase>generate-sources</phase>
                         <configuration>
-                            <sourceDirectory>${project.basedir}/src/main/avro/
-                            </sourceDirectory>
-                            <!--uncomment for eclipse only -->
-                            <!--outputDirectory>
-                                ${project.basedir}/src/main/java
-                            </outputDirectory-->
+                            <imports>
+                                <import>${project.basedir}/src/main/avro/OrderItem.avsc</import>
+                                <import>${project.basedir}/src/main/avro/PaymentApproved.avsc</import>
+                                <import>${project.basedir}/src/main/avro/PaymentDeclined.avsc</import>
+                                <import>${project.basedir}/src/main/avro/StockReleased.avsc</import>
+                                <import>${project.basedir}/src/main/avro/StockReserved.avsc</import>
+                            </imports>
+                            <includes>
+                                <include>*.avsc</include>
+                            </includes>
+                            <sourceDirectory>${project.basedir}/src/main/avro</sourceDirectory>
+                            <outputDirectory>${project.build.directory}/generated-sources/avro</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
