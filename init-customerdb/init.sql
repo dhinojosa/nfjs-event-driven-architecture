@@ -6,7 +6,8 @@ CREATE TABLE customers
     customerid VARCHAR(255),
     firstname  VARCHAR(255),
     lastname   VARCHAR(255),
-    points     INT
+    points     INT,
+    updatedTimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 INSERT INTO customers (customerid, firstname, lastname, points)

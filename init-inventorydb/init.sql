@@ -4,7 +4,8 @@ CREATE TABLE inventory
 (
     productId varchar(255) PRIMARY KEY,
     name varchar(255) NOT NULL,
-    quantity  integer NOT NULL
+    quantity  integer NOT NULL,
+    updatedTimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 
