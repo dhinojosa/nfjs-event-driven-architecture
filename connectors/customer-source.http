@@ -10,7 +10,7 @@ Content-Type: application/json
         "connection.password": "customer_password",
         "mode": "timestamp+incrementing",
         "incrementing.column.name": "id",
-        "timestamp.column.name": "updatedTimestamp",
+        "timestamp.column.name": "updatedtimestamp",
         "table.whitelist": "customers",
         "poll.interval.ms": "5000",
         "batch.max.rows": "100",

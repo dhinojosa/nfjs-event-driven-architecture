@@ -10,7 +10,7 @@ Content-Type: application/json
         "connection.password": "inventory_password",
         "mode": "timestamp+incrementing",
         "incrementing.column.name": "id",
-        "timestamp.column.name": "updatedTimestamp",
+        "timestamp.column.name": "updatedtimestamp",
         "table.whitelist": "inventory",
         "key.converter": "io.confluent.connect.avro.AvroConverter",
         "value.converter": "io.confluent.connect.avro.AvroConverter",
