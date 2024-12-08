@@ -2,23 +2,25 @@ POST http://localhost:8083/connectors
 Content-Type: application/json
 
 {
-    "name": "debezium-postgres-customer-source-connector",
+    "name": "confluent-jdbc-postgres-customer-source-connector",
     "config": {
-        "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
-        "database.hostname": "customer-database",
-        "database.port": "5432",
-        "database.user": "customer_user",
-        "database.password": "customer_password",
-        "database.dbname" : "customer_db",
-        "plugin.name": "pgoutput",
-        "topic.prefix": "postgres_",
+        "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+        "connection.url": "jdbc:postgresql://customer-database:5432/customer_db",
+        "connection.user": "customer_user",
+        "connection.password": "customer_password",
+        "mode": "incrementing",
+        "incrementing.column.name": "id", 
+        "table.whitelist": "customers",
+        "topic.prefix": "customers",
         "key.converter.schema.registry.url": "http://schema-registry:8081",
         "value.converter.schema.registry.url": "http://schema-registry:8081",
         "key.converter": "io.confluent.connect.avro.AvroConverter",
         "value.converter": "io.confluent.connect.avro.AvroConverter",
+        "poll.interval.ms": "5000",
+        "batch.max.rows": "100",
         "transforms": "route",
         "transforms.route.type": "org.apache.kafka.connect.transforms.RegexRouter",
-        "transforms.route.regex": "postgres_.public.customers",
+        "transforms.route.regex": "customers",
         "transforms.route.replacement": "customers"
     }
 }

@@ -1,3 +1,25 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5434,
+            "driver": "PostgreSQL",
+            "name": "customer",
+            "database": "customer_db",
+            "username": "customer_user",
+            "password": "customer_password"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5433,
+            "driver": "PostgreSQL",
+            "name": "inventory",
+            "database": "inventory_db",
+            "username": "inventory_user",
+            "password": "inventory_password"
+        }
+    ]
 }

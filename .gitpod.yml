@@ -13,3 +13,5 @@ vscode:
         - "vscjava.vscode-java-pack"
         - "redhat.fabric8-analytics"
         - "ms-azuretools.vscode-docker"
+        - "mtxr.sqltools"
+        - "mtxr.sqltools-driver-pg"
