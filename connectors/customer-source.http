@@ -8,19 +8,15 @@ Content-Type: application/json
         "connection.url": "jdbc:postgresql://customer-database:5432/customer_db",
         "connection.user": "customer_user",
         "connection.password": "customer_password",
-        "mode": "incrementing",
-        "incrementing.column.name": "id", 
+        "mode": "timestamp+incrementing",
+        "incrementing.column.name": "id",
+        "timestamp.column.name": "updatedTimestamp",
         "table.whitelist": "customers",
-        "topic.prefix": "customers",
+        "poll.interval.ms": "5000",
+        "batch.max.rows": "100",
         "key.converter.schema.registry.url": "http://schema-registry:8081",
         "value.converter.schema.registry.url": "http://schema-registry:8081",
         "key.converter": "io.confluent.connect.avro.AvroConverter",
-        "value.converter": "io.confluent.connect.avro.AvroConverter",
-        "poll.interval.ms": "5000",
-        "batch.max.rows": "100",
-        "transforms": "route",
-        "transforms.route.type": "org.apache.kafka.connect.transforms.RegexRouter",
-        "transforms.route.regex": "customers",
-        "transforms.route.replacement": "customers"
+        "value.converter": "io.confluent.connect.avro.AvroConverter"
     }
 }
