@@ -230,7 +230,7 @@ services:
             "echo Waiting for Kafka to be ready... && \
             cub kafka-ready -b broker:29092 1 40 && \
             kafka-topics --create --if-not-exists --bootstrap-server broker:29092 --replication-factor 1 --partitions 3 --topic inventory && \
-            kafka-topics --create --if-not-exists --bootstrap-server broker:29092 --replication-factor 1 --partitions 3 --topic customer && \
+            kafka-topics --create --if-not-exists --bootstrap-server broker:29092 --replication-factor 1 --partitions 3 --topic customers && \
             kafka-topics --create --if-not-exists --bootstrap-server broker:29092 --replication-factor 1 --partitions 3 --topic order-placed && \
             kafka-topics --create --if-not-exists --bootstrap-server broker:29092 --replication-factor 1 --partitions 3 --topic stock-reserved && \
             kafka-topics --create --if-not-exists --bootstrap-server broker:29092 --replication-factor 1 --partitions 3 --topic stock-released && \
