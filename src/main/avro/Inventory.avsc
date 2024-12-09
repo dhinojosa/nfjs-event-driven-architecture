@@ -1,9 +1,0 @@
-{
-    "type": "record",
-    "name": "Inventory",
-    "namespace": "com.evolutionnext.warehouse",
-    "fields": [
-        {"name": "productId", "type": "string"},
-        {"name": "quantity", "type": "int"}
-    ]
-}

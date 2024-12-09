@@ -196,46 +196,4 @@ services:
             ME_CONFIG_MONGODB_ADMINPASSWORD: example
             ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
 
-    customer-database:
-        image: postgres:latest
-        container_name: customer-database
-        environment:
-            POSTGRES_USER: customer_user
-            POSTGRES_PASSWORD: customer_password
-            POSTGRES_DB: customer_db
-        ports:
-            - "5434:5432"
-        volumes:
-            - ./init-customerdb:/docker-entrypoint-initdb.d/
-
-    inventory-database:
-        image: postgres:latest
-        container_name: inventory-database
-        environment:
-            POSTGRES_USER: inventory_user
-            POSTGRES_PASSWORD: inventory_password
-            POSTGRES_DB: inventory_db
-        ports:
-            - "5433:5432"
-        volumes:
-            - ./init-inventorydb:/docker-entrypoint-initdb.d/
-
-    topic-creator:
-        image: confluentinc/cp-kafka:7.6.1
-        container_name: topic-creator
-        depends_on:
-            - broker
-        entrypoint: /bin/sh -c
-        command: |
-            "echo Waiting for Kafka to be ready... && \
-            cub kafka-ready -b broker:29092 1 40 && \
-            kafka-topics --create --if-not-exists --bootstrap-server broker:29092 --replication-factor 1 --partitions 3 --topic inventory && \
-            kafka-topics --create --if-not-exists --bootstrap-server broker:29092 --replication-factor 1 --partitions 3 --topic customers && \
-            kafka-topics --create --if-not-exists --bootstrap-server broker:29092 --replication-factor 1 --partitions 3 --topic order-placed && \
-            kafka-topics --create --if-not-exists --bootstrap-server broker:29092 --replication-factor 1 --partitions 3 --topic stock-reserved && \
-            kafka-topics --create --if-not-exists --bootstrap-server broker:29092 --replication-factor 1 --partitions 3 --topic stock-released && \
-            kafka-topics --create --if-not-exists --bootstrap-server broker:29092 --replication-factor 1 --partitions 3 --topic payment-approved && \
-            kafka-topics --create --if-not-exists --bootstrap-server broker:29092 --replication-factor 1 --partitions 3 --topic payment-declined && \
-            echo Topics created: inventory, customer, payment-approved, order-placed, stock-reserved, stock-released, payment-approved, payment-declined  && \
-            tail -f /dev/null"
 
