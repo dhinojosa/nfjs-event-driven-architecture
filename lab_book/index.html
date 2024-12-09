@@ -521,6 +521,7 @@ pre.pygments .tok-il { color: #40a070 } /* Literal.Number.Integer.Long */
 <li><a href="#_lab_writing_a_consumer">Lab: Writing a Consumer</a></li>
 <li><a href="#_lab_go_back_in_time">Lab: Go Back in Time</a></li>
 <li><a href="#_lab_streams">Lab: Streams</a></li>
+<li><a href="#_lab_using_avro_and_ksql">Lab: Using Avro and KSQL</a></li>
 <li><a href="#_lab_cqrs">Lab: CQRS</a>
 <ul class="sectlevel2">
 <li><a href="#_launch_initial_containers">Launch Initial Containers</a></li>
@@ -533,8 +534,6 @@ pre.pygments .tok-il { color: #40a070 } /* Literal.Number.Integer.Long */
 <li><a href="#_create_a_mongodb_sink">Create a MongoDB Sink</a></li>
 </ul>
 </li>
-<li><a href="#_lab_saga_choreography">Lab: Saga Choreography</a></li>
-<li><a href="#_lab_saga_orchestrator">Lab: Saga Orchestrator</a></li>
 </ul>
 </div>
 </div>
@@ -554,7 +553,7 @@ pre.pygments .tok-il { color: #40a070 } /* Literal.Number.Integer.Long */
 <p>Create a producer called <code>MyProducer</code> inside of a package <code>com.evolutionnext</code> with the following content:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="java"><span></span><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">com.evolutionnext</span><span class="tok-p">;</span>
+<pre class="pygments highlight"><code data-lang="java"><span></span><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">com.evolutionnext.producers</span><span class="tok-p">;</span>
 
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.clients.producer.KafkaProducer</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.clients.producer.ProducerConfig</span><span class="tok-p">;</span>
@@ -679,7 +678,7 @@ pre.pygments .tok-il { color: #40a070 } /* Literal.Number.Integer.Long */
 <p>Create a consumer called <code>MyConsumer</code> inside of a package <code>com.evolutionnext</code> with the following content:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="java"><span></span><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">com.evolutionnext</span><span class="tok-p">;</span>
+<pre class="pygments highlight"><code data-lang="java"><span></span><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">com.evolutionnext.consumers</span><span class="tok-p">;</span>
 
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.clients.consumer.*</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.common.TopicPartition</span><span class="tok-p">;</span>
@@ -804,34 +803,34 @@ revoked and for what reason.</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create a consumer called <code>MyConsumer</code> inside of a package <code>com.xyzcorp</code> with the following content:</p>
+<p>Create a consumer called <code>MyRewindConsumer</code> inside of a package <code>com.evolutionnext.consumers</code> with the following content:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="java"><span></span><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">com.xyzcorp</span><span class="tok-p">;</span>
+<pre class="pygments highlight"><code data-lang="java"><span></span><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">com.evolutionnext.consumers</span><span class="tok-p">;</span>
 
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.clients.consumer.*</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.common.TopicPartition</span><span class="tok-p">;</span>
 
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.time.Duration</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.time.Instant</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.time.temporal.ChronoUnit</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Collection</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Collections</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.HashMap</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Map</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Properties</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.atomic.AtomicBoolean</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.stream.Collectors</span><span class="tok-p">;</span>
 
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MyRewindConsumer</span><span class="tok-w"> </span><span class="tok-p">{</span>
 
-<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MyConsumer</span><span class="tok-w"> </span><span class="tok-p">{</span>
-
-
-<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">collectionTopicPartitionToString</span>
-<span class="tok-w">            </span><span class="tok-p">(</span><span class="tok-n">Collection</span><span class="tok-o">&lt;</span><span class="tok-n">TopicPartition</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">topicPartitions</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">collectionTopicPartitionToString</span><span class="tok-p">(</span><span class="tok-n">Collection</span><span class="tok-o">&lt;</span><span class="tok-n">TopicPartition</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">topicPartitions</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">topicPartitions</span><span class="tok-p">.</span><span class="tok-na">stream</span><span class="tok-p">()</span>
-<span class="tok-w">                              </span><span class="tok-p">.</span><span class="tok-na">map</span><span class="tok-p">(</span><span class="tok-n">tp</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-n">tp</span><span class="tok-p">.</span><span class="tok-na">topic</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">&quot; - &quot;</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">tp</span><span class="tok-p">.</span><span class="tok-na">partition</span><span class="tok-p">())</span>
-<span class="tok-w">                              </span><span class="tok-p">.</span><span class="tok-na">collect</span><span class="tok-p">(</span><span class="tok-n">Collectors</span><span class="tok-p">.</span><span class="tok-na">joining</span><span class="tok-p">(</span><span class="tok-s">&quot;,&quot;</span><span class="tok-p">));</span>
+<span class="tok-w">                </span><span class="tok-p">.</span><span class="tok-na">map</span><span class="tok-p">(</span><span class="tok-n">tp</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-n">tp</span><span class="tok-p">.</span><span class="tok-na">topic</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">&quot; - &quot;</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">tp</span><span class="tok-p">.</span><span class="tok-na">partition</span><span class="tok-p">())</span>
+<span class="tok-w">                </span><span class="tok-p">.</span><span class="tok-na">collect</span><span class="tok-p">(</span><span class="tok-n">Collectors</span><span class="tok-p">.</span><span class="tok-na">joining</span><span class="tok-p">(</span><span class="tok-s">&quot;,&quot;</span><span class="tok-p">));</span>
 <span class="tok-w">    </span><span class="tok-p">}</span>
 
-<span class="tok-w">    </span><span class="tok-nd">@SuppressWarnings</span><span class="tok-p">({</span><span class="tok-s">&quot;Duplicates&quot;</span><span class="tok-p">})</span>
+<span class="tok-w">    </span><span class="tok-nd">@SuppressWarnings</span><span class="tok-p">({</span><span class="tok-w"> </span><span class="tok-s">&quot;Duplicates&quot;</span><span class="tok-w"> </span><span class="tok-p">})</span>
 <span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">        </span><span class="tok-n">Properties</span><span class="tok-w"> </span><span class="tok-n">properties</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Properties</span><span class="tok-p">();</span>
 <span class="tok-w">        </span><span class="tok-n">properties</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-n">ConsumerConfig</span><span class="tok-p">.</span><span class="tok-na">BOOTSTRAP_SERVERS_CONFIG</span><span class="tok-p">,</span>
@@ -844,8 +843,7 @@ revoked and for what reason.</p>
 <span class="tok-w">        </span><span class="tok-n">properties</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-n">ConsumerConfig</span><span class="tok-p">.</span><span class="tok-na">AUTO_OFFSET_RESET_CONFIG</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-s">&quot;earliest&quot;</span><span class="tok-p">);</span>
 <span class="tok-w">        </span><span class="tok-n">properties</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-n">ConsumerConfig</span><span class="tok-p">.</span><span class="tok-na">ENABLE_AUTO_COMMIT_CONFIG</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kc">false</span><span class="tok-p">);</span>
 
-<span class="tok-w">        </span><span class="tok-n">KafkaConsumer</span><span class="tok-o">&lt;</span><span class="tok-n">String</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">consumer</span><span class="tok-w"> </span><span class="tok-o">=</span>
-<span class="tok-w">                </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">KafkaConsumer</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(</span><span class="tok-n">properties</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">KafkaConsumer</span><span class="tok-o">&lt;</span><span class="tok-n">String</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">consumer</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">KafkaConsumer</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(</span><span class="tok-n">properties</span><span class="tok-p">);</span>
 
 <span class="tok-w">        </span><span class="tok-n">consumer</span><span class="tok-p">.</span><span class="tok-na">subscribe</span><span class="tok-p">(</span><span class="tok-n">Collections</span><span class="tok-p">.</span><span class="tok-na">singletonList</span><span class="tok-p">(</span><span class="tok-s">&quot;my_orders&quot;</span><span class="tok-p">),</span>
 <span class="tok-w">                </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ConsumerRebalanceListener</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -860,6 +858,25 @@ revoked and for what reason.</p>
 <span class="tok-w">                    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">onPartitionsAssigned</span><span class="tok-p">(</span><span class="tok-n">Collection</span><span class="tok-o">&lt;</span><span class="tok-n">TopicPartition</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">collection</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">                        </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">&quot;Partition assigned:&quot;</span><span class="tok-w"> </span><span class="tok-o">+</span>
 <span class="tok-w">                                </span><span class="tok-n">collectionTopicPartitionToString</span><span class="tok-p">(</span><span class="tok-n">collection</span><span class="tok-p">));</span>
+
+<span class="tok-w">                        </span><span class="tok-c1">//Rewinding Five Minutes Back</span>
+<span class="tok-w">                        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">startTimestamp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Instant</span><span class="tok-p">.</span><span class="tok-na">now</span><span class="tok-p">().</span><span class="tok-na">minusSeconds</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">60</span><span class="tok-p">).</span><span class="tok-na">toEpochMilli</span><span class="tok-p">();</span>
+
+<span class="tok-w">                        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">Map</span><span class="tok-o">&lt;</span><span class="tok-n">TopicPartition</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Long</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">timestampsToSearch</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">HashMap</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">                        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">TopicPartition</span><span class="tok-w"> </span><span class="tok-n">partition</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">collection</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                            </span><span class="tok-n">timestampsToSearch</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-n">partition</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">startTimestamp</span><span class="tok-p">);</span>
+<span class="tok-w">                        </span><span class="tok-p">}</span>
+
+<span class="tok-w">                        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">Map</span><span class="tok-o">&lt;</span><span class="tok-n">TopicPartition</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">OffsetAndTimestamp</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">startOffsets</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">consumer</span>
+<span class="tok-w">                                </span><span class="tok-p">.</span><span class="tok-na">offsetsForTimes</span><span class="tok-p">(</span><span class="tok-n">timestampsToSearch</span><span class="tok-p">);</span>
+
+<span class="tok-w">                        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Map</span><span class="tok-p">.</span><span class="tok-na">Entry</span><span class="tok-o">&lt;</span><span class="tok-n">TopicPartition</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">OffsetAndTimestamp</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">entry</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">startOffsets</span><span class="tok-p">.</span><span class="tok-na">entrySet</span><span class="tok-p">())</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">entry</span><span class="tok-p">.</span><span class="tok-na">getValue</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">printf</span><span class="tok-p">(</span><span class="tok-s">&quot;Seeking partition %d to offset %d\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">entry</span><span class="tok-p">.</span><span class="tok-na">getKey</span><span class="tok-p">().</span><span class="tok-na">partition</span><span class="tok-p">(),</span>
+<span class="tok-w">                                        </span><span class="tok-n">entry</span><span class="tok-p">.</span><span class="tok-na">getValue</span><span class="tok-p">().</span><span class="tok-na">offset</span><span class="tok-p">());</span>
+<span class="tok-w">                                </span><span class="tok-n">consumer</span><span class="tok-p">.</span><span class="tok-na">seek</span><span class="tok-p">(</span><span class="tok-n">entry</span><span class="tok-p">.</span><span class="tok-na">getKey</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">entry</span><span class="tok-p">.</span><span class="tok-na">getValue</span><span class="tok-p">().</span><span class="tok-na">offset</span><span class="tok-p">());</span>
+<span class="tok-w">                            </span><span class="tok-p">}</span>
+<span class="tok-w">                        </span><span class="tok-p">}</span>
 <span class="tok-w">                    </span><span class="tok-p">}</span>
 <span class="tok-w">                </span><span class="tok-p">});</span>
 
@@ -868,8 +885,7 @@ revoked and for what reason.</p>
 <span class="tok-w">        </span><span class="tok-n">Runtime</span><span class="tok-p">.</span><span class="tok-na">getRuntime</span><span class="tok-p">().</span><span class="tok-na">addShutdownHook</span><span class="tok-p">(</span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-n">done</span><span class="tok-p">.</span><span class="tok-na">set</span><span class="tok-p">(</span><span class="tok-kc">true</span><span class="tok-p">)));</span>
 
 <span class="tok-w">        </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">done</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">())</span><span class="tok-w"> </span><span class="tok-p">{</span>
-<span class="tok-w">            </span><span class="tok-n">ConsumerRecords</span><span class="tok-o">&lt;</span><span class="tok-n">String</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">records</span><span class="tok-w"> </span><span class="tok-o">=</span>
-<span class="tok-w">                    </span><span class="tok-n">consumer</span><span class="tok-p">.</span><span class="tok-na">poll</span><span class="tok-p">(</span><span class="tok-n">Duration</span><span class="tok-p">.</span><span class="tok-na">of</span><span class="tok-p">(</span><span class="tok-mi">500</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">ChronoUnit</span><span class="tok-p">.</span><span class="tok-na">MILLIS</span><span class="tok-p">));</span>
+<span class="tok-w">            </span><span class="tok-n">ConsumerRecords</span><span class="tok-o">&lt;</span><span class="tok-n">String</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">records</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">consumer</span><span class="tok-p">.</span><span class="tok-na">poll</span><span class="tok-p">(</span><span class="tok-n">Duration</span><span class="tok-p">.</span><span class="tok-na">of</span><span class="tok-p">(</span><span class="tok-mi">500</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">ChronoUnit</span><span class="tok-p">.</span><span class="tok-na">MILLIS</span><span class="tok-p">));</span>
 <span class="tok-w">            </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">ConsumerRecord</span><span class="tok-o">&lt;</span><span class="tok-n">String</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">record</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">records</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;offset: %d\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">record</span><span class="tok-p">.</span><span class="tok-na">offset</span><span class="tok-p">());</span>
 <span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;partition: %d\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">record</span><span class="tok-p">.</span><span class="tok-na">partition</span><span class="tok-p">());</span>
@@ -881,12 +897,11 @@ revoked and for what reason.</p>
 <span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;value: %s\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">record</span><span class="tok-p">.</span><span class="tok-na">value</span><span class="tok-p">());</span>
 <span class="tok-w">            </span><span class="tok-p">}</span>
 
-
 <span class="tok-w">            </span><span class="tok-n">consumer</span><span class="tok-p">.</span><span class="tok-na">commitAsync</span><span class="tok-p">((</span><span class="tok-n">offsets</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">exception</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
 
 <span class="tok-w">            </span><span class="tok-p">});</span>
 <span class="tok-w">        </span><span class="tok-p">}</span>
-<span class="tok-w">        </span><span class="tok-n">consumer</span><span class="tok-p">.</span><span class="tok-na">commitSync</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">//Block</span>
+<span class="tok-w">        </span><span class="tok-n">consumer</span><span class="tok-p">.</span><span class="tok-na">commitSync</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// Block</span>
 <span class="tok-w">        </span><span class="tok-n">consumer</span><span class="tok-p">.</span><span class="tok-na">close</span><span class="tok-p">();</span>
 <span class="tok-w">    </span><span class="tok-p">}</span>
 <span class="tok-p">}</span></code></pre>
@@ -894,11 +909,11 @@ revoked and for what reason.</p>
 </div>
 </li>
 <li>
-<p>Run <code>MyProducer</code> from the previous lab</p>
+<p>Run <code>MyProducer</code> from the previous lab, if it still isn&#8217;t running</p>
 </li>
 <li>
-<p>Run <code>MyTimeTravelConsumer</code> in either your IDE or with Maven in the <em>advanced_java</em> folder
-using <code>mvn exec:java -Dexec.mainClass="com.xyzcorp.MyTimeTravelConsumer"</code> and view the results.</p>
+<p>Run <code>MyRewindConsumer</code> in either your IDE or with Maven in the <em>advanced_java</em> folder
+using <code>mvn exec:java -Dexec.mainClass="com.xyzcorp.MyRewindConsumer"</code> and view the results. Since we are controlling the time, we can rewind wherever we need to.</p>
 </li>
 <li>
 <p>Stop all consumers and producers</p>
@@ -1022,6 +1037,234 @@ the sleep time so that more orders come in.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_lab_using_avro_and_ksql">Lab: Using Avro and KSQL</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In the <code>src/main/avro</code> folder, which you may need to create, create a file in that folder called <em>Order.avsc</em></p>
+</li>
+<li>
+<p>Add the following content in <em>Order.avsc</em>, discuss or think about how this would look as a Java class</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="avro"><span></span>{
+  &quot;type&quot;: &quot;record&quot;,
+  &quot;namespace&quot;: &quot;com.xyzcorp&quot;,
+  &quot;name&quot;: &quot;Order&quot;,
+  &quot;fields&quot;: [
+    {
+      &quot;type&quot;: &quot;int&quot;,
+      &quot;name&quot;: &quot;total&quot;
+    },
+    {
+      &quot;name&quot;: &quot;shipping&quot;,
+      &quot;type&quot;: {
+        &quot;name&quot;: &quot;Shipping&quot;,
+        &quot;type&quot;: &quot;enum&quot;,
+        &quot;symbols&quot;: [
+          &quot;NEXT_DAY&quot;,
+          &quot;TWO_DAY&quot;,
+          &quot;GROUND&quot;
+        ]
+      }
+    },
+    {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;name&quot;: &quot;state&quot;
+    },
+    {
+      &quot;type&quot;: &quot;float&quot;,
+      &quot;name&quot;: &quot;discount&quot;
+    },
+    {
+      &quot;type&quot;: [
+        &quot;null&quot;,
+        {
+          &quot;type&quot;: &quot;enum&quot;,
+          &quot;name&quot;: &quot;Gender&quot;,
+          &quot;symbols&quot;: [
+            &quot;MALE&quot;,
+            &quot;FEMALE&quot;
+          ]
+        }
+      ],
+      &quot;name&quot;: &quot;gender&quot;
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Ensure that you generate a class from the avro by invoking <code>mvn generate-sources</code>.
+Verify that the classes are created by looking in the <em>target/generated-sources</em> folder.</p>
+</li>
+<li>
+<p>Create a topic called <code>my_avro_orders</code> in Apache Kafka,
+with a replication factor of <code>1</code> and <code>3</code> partitions</p>
+</li>
+<li>
+<p>Create a producer called <code>MyAvroProducer</code> inside the package
+of <code>com.xyzcorp</code> with the following content</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="java"><span></span><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">com.xyzcorp</span><span class="tok-p">;</span>
+
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.clients.producer.KafkaProducer</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.clients.producer.ProducerConfig</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.clients.producer.ProducerRecord</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.clients.producer.RecordMetadata</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.common.serialization.StringSerializer</span><span class="tok-p">;</span>
+
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Properties</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Random</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.ExecutionException</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.Future</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.atomic.AtomicBoolean</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MyAvroProducer</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-nd">@SuppressWarnings</span><span class="tok-p">(</span><span class="tok-s">&quot;Duplicates&quot;</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">Properties</span><span class="tok-w"> </span><span class="tok-n">properties</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Properties</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-n">properties</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-n">ProducerConfig</span><span class="tok-p">.</span><span class="tok-na">BOOTSTRAP_SERVERS_CONFIG</span><span class="tok-p">,</span>
+<span class="tok-w">                </span><span class="tok-s">&quot;localhost:9092&quot;</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">properties</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-n">ProducerConfig</span><span class="tok-p">.</span><span class="tok-na">KEY_SERIALIZER_CLASS_CONFIG</span><span class="tok-p">,</span>
+<span class="tok-w">                </span><span class="tok-n">StringSerializer</span><span class="tok-p">.</span><span class="tok-na">class</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">properties</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-n">ProducerConfig</span><span class="tok-p">.</span><span class="tok-na">VALUE_SERIALIZER_CLASS_CONFIG</span><span class="tok-p">,</span>
+<span class="tok-w">                </span><span class="tok-n">io</span><span class="tok-p">.</span><span class="tok-na">confluent</span><span class="tok-p">.</span><span class="tok-na">kafka</span><span class="tok-p">.</span><span class="tok-na">serializers</span><span class="tok-p">.</span><span class="tok-na">KafkaAvroSerializer</span><span class="tok-p">.</span><span class="tok-na">class</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">properties</span><span class="tok-p">.</span><span class="tok-na">setProperty</span><span class="tok-p">(</span><span class="tok-s">&quot;schema.registry.url&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-s">&quot;http://localhost:8081&quot;</span><span class="tok-p">);</span>
+
+<span class="tok-w">        </span><span class="tok-n">KafkaProducer</span><span class="tok-o">&lt;</span><span class="tok-n">String</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Order</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">producer</span><span class="tok-w"> </span><span class="tok-o">=</span>
+<span class="tok-w">                </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">KafkaProducer</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(</span><span class="tok-n">properties</span><span class="tok-p">);</span>
+
+<span class="tok-w">        </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">stateString</span><span class="tok-w"> </span><span class="tok-o">=</span>
+<span class="tok-w">                </span><span class="tok-s">&quot;AK,AL,AZ,AR,CA,CO,CT,DE,FL,GA,&quot;</span><span class="tok-w"> </span><span class="tok-o">+</span>
+<span class="tok-w">                        </span><span class="tok-s">&quot;HI,ID,IL,IN,IA,KS,KY,LA,ME,MD,&quot;</span><span class="tok-w"> </span><span class="tok-o">+</span>
+<span class="tok-w">                        </span><span class="tok-s">&quot;MA,MI,MN,MS,MO,MT,NE,NV,NH,NJ,&quot;</span><span class="tok-w"> </span><span class="tok-o">+</span>
+<span class="tok-w">                        </span><span class="tok-s">&quot;NM,NY,NC,ND,OH,OK,OR,PA,RI,SC,&quot;</span><span class="tok-w"> </span><span class="tok-o">+</span>
+<span class="tok-w">                        </span><span class="tok-s">&quot;SD,TN,TX,UT,VT,VA,WA,WV,WI,WY&quot;</span><span class="tok-p">;</span>
+
+<span class="tok-w">        </span><span class="tok-n">Random</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Random</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-n">AtomicBoolean</span><span class="tok-w"> </span><span class="tok-n">done</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">AtomicBoolean</span><span class="tok-p">(</span><span class="tok-kc">false</span><span class="tok-p">);</span>
+
+<span class="tok-w">        </span><span class="tok-n">Runtime</span><span class="tok-p">.</span><span class="tok-na">getRuntime</span><span class="tok-p">().</span><span class="tok-na">addShutdownHook</span><span class="tok-p">(</span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">done</span><span class="tok-p">.</span><span class="tok-na">set</span><span class="tok-p">(</span><span class="tok-kc">true</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-n">producer</span><span class="tok-p">.</span><span class="tok-na">close</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}));</span>
+
+<span class="tok-w">        </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">done</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">())</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">states</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">stateString</span><span class="tok-p">.</span><span class="tok-na">split</span><span class="tok-p">(</span><span class="tok-s">&quot;,&quot;</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">(</span><span class="tok-n">states</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">state</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">states</span><span class="tok-o">[</span><span class="tok-n">index</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">amount</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">(</span><span class="tok-mi">99999</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-n">Gender</span><span class="tok-w"> </span><span class="tok-n">gender</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-p">.</span><span class="tok-na">nextBoolean</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-n">Gender</span><span class="tok-p">.</span><span class="tok-na">MALE</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">Gender</span><span class="tok-p">.</span><span class="tok-na">FEMALE</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-kt">float</span><span class="tok-w"> </span><span class="tok-n">discount</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">(</span><span class="tok-mi">20</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">/</span><span class="tok-w"> </span><span class="tok-mf">100.0f</span><span class="tok-p">;</span>
+
+<span class="tok-w">            </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">shippingChoice</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+
+<span class="tok-w">            </span><span class="tok-n">Order</span><span class="tok-w"> </span><span class="tok-n">order</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Order</span><span class="tok-p">(</span><span class="tok-n">amount</span><span class="tok-p">,</span>
+<span class="tok-w">                    </span><span class="tok-n">Shipping</span><span class="tok-p">.</span><span class="tok-na">values</span><span class="tok-p">()</span><span class="tok-o">[</span><span class="tok-n">shippingChoice</span><span class="tok-o">]</span><span class="tok-p">,</span>
+<span class="tok-w">                    </span><span class="tok-n">state</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">discount</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">gender</span><span class="tok-p">);</span>
+
+<span class="tok-w">            </span><span class="tok-n">ProducerRecord</span><span class="tok-o">&lt;</span><span class="tok-n">String</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Order</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">producerRecord</span><span class="tok-w"> </span><span class="tok-o">=</span>
+<span class="tok-w">                    </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ProducerRecord</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(</span><span class="tok-s">&quot;my_avro_orders&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">state</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">order</span><span class="tok-p">);</span>
+
+<span class="tok-w">            </span><span class="tok-n">Future</span><span class="tok-o">&lt;</span><span class="tok-n">RecordMetadata</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">future</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">producer</span><span class="tok-p">.</span><span class="tok-na">send</span><span class="tok-p">(</span><span class="tok-n">producerRecord</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">RecordMetadata</span><span class="tok-w"> </span><span class="tok-n">metadata</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">future</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">();</span>
+<span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;key: %s\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">producerRecord</span><span class="tok-p">.</span><span class="tok-na">key</span><span class="tok-p">());</span>
+<span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;offset: %d\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">metadata</span><span class="tok-p">.</span><span class="tok-na">offset</span><span class="tok-p">());</span>
+<span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;partition: %d\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">metadata</span><span class="tok-p">.</span><span class="tok-na">partition</span><span class="tok-p">());</span>
+<span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;timestamp: %d\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">metadata</span><span class="tok-p">.</span><span class="tok-na">timestamp</span><span class="tok-p">());</span>
+<span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;topic: %s\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">metadata</span><span class="tok-p">.</span><span class="tok-na">topic</span><span class="tok-p">());</span>
+<span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;toString: %s\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">metadata</span><span class="tok-p">.</span><span class="tok-na">toString</span><span class="tok-p">());</span>
+<span class="tok-w">            </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">ExecutionException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+
+<span class="tok-w">            </span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">sleep</span><span class="tok-p">(</span><span class="tok-n">random</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">(</span><span class="tok-mi">15000</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">5000</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">5000</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Run a ksql terminal that will attach to the KSQL Server using</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sh"><span></span>$<span class="tok-w"> </span>ksql<span class="tok-w"> </span>http://localhost:8088</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>In the KSQL CLI, create an initial stream from the <code>my_avro_orders</code> topic using the following</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="ksql"><span></span>CREATE STREAM my_avro_orders \
+(total BIGINT, shipping VARCHAR, state VARCHAR, discount DOUBLE, \
+gender VARCHAR) WITH (kafka_topic=&#39;my_avro_orders&#39;, value_format=&#39;AVRO&#39;);</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Ensure that your stream is available when you call <code>SHOW STREAMS:</code></p>
+</li>
+<li>
+<p>In KSQL, add <code>SET 'auto.offset.reset'='earliest';</code>
+so that you can start processing all information.</p>
+</li>
+<li>
+<p>Give ksql for a spin with a non-persistent query
+using <code>SELECT * from my_avro_orders;</code></p>
+</li>
+<li>
+<p>Using KSQL, create another non-persistent query that selects
+all females from <code>my_avro_orders</code> from the state of Vermont</p>
+</li>
+<li>
+<p>Using KSQL, create a non-persistent query that selects
+all next day shipping orders and groups by state.</p>
+</li>
+<li>
+<p>Using KSQL, after you ensure that the non-persistent
+query above works, turn it into a persistent <em>table</em> query and persist the content into
+a topic called <code>next_day_shipping_by_state</code></p>
+</li>
+<li>
+<p>On a new terminal, enter the following at the command line in the <em>confluent-6.x.x</em>
+directory to view your results</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sh"><span></span>./bin/kafka-avro-console-consumer<span class="tok-w"> </span><span class="tok-se">\</span>
+<span class="tok-w">  </span>--bootstrap-server<span class="tok-w"> </span>localhost:9092<span class="tok-w"> </span><span class="tok-se">\</span>
+<span class="tok-w">  </span>--topic<span class="tok-w"> </span>next_day_shipping_by_state<span class="tok-w"> </span><span class="tok-se">\</span>
+<span class="tok-w">  </span>--from-beginning<span class="tok-w"> </span><span class="tok-se">\</span>
+<span class="tok-w">  </span>--key-deserializer<span class="tok-w"> </span>org.apache.kafka.common.serialization.StringDeserializer<span class="tok-w"> </span><span class="tok-se">\</span>
+<span class="tok-w">  </span>--property<span class="tok-w"> </span>print.key<span class="tok-o">=</span><span class="tok-nb">true</span><span class="tok-w"> </span><span class="tok-se">\</span>
+<span class="tok-w">  </span>--property<span class="tok-w"> </span>key.separator<span class="tok-o">=</span>,</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Run <code>SHOW QUERIES</code> to display all the queries that running, find
+the query identifier for the persistent query you just ran, then call
+<code>TERMINATE</code> with the identifier.</p>
+</li>
+<li>
+<p>Exit ksql</p>
+</li>
+</ol>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img src="./images/stop.png" alt="stop" width="15%" height="15%">
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_lab_cqrs">Lab: CQRS</h2>
 <div class="sectionbody">
 <div class="sect2">
@@ -1032,7 +1275,7 @@ the sleep time so that more orders come in.</p>
 <p>Open the <em>cqrs</em> module folder</p>
 </li>
 <li>
-<p>Right-click on the <em>docker-compose.yml</em> file and select "Compose Up - Select Services", deselect all the checkmarks, and select <code>connect ksqldb-cli postgres control-center mongo mongo-express</code></p>
+<p>Right-click on the <em>docker-compose.yml</em> file and select "Compose Up - Select Services", deselect all the checkmarks, and select <code>connect ksqldb-cli postgres-outbox control-center mongo mongo-express</code></p>
 </li>
 <li>
 <p>Login into <code>connect</code> container by using either <code>Attach Shell</code> on Gitpod or <code>docker exec -it connect /bin/bash</code></p>
@@ -1180,7 +1423,7 @@ the sleep time so that more orders come in.</p>
 <p><strong>Value Converter Class</strong> - <code>io.confluent.connect.avro.AvroConverter</code></p>
 </li>
 <li>
-<p><strong>JDBC URL</strong> - <code>jdbc:postgresql://postgres:5432/</code></p>
+<p><strong>JDBC URL</strong> - <code>jdbc:postgresql://postgres-outbox:5432/</code></p>
 </li>
 <li>
 <p><strong>JDBC User</strong> - <code>docker</code></p>
@@ -1347,30 +1590,10 @@ VALUE_FORMAT = &#39;AVRO&#39;
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_lab_saga_choreography">Lab: Saga Choreography</h2>
-<div class="sectionbody">
-<div class="imageblock text-center">
-<div class="content">
-<img src="./images/stop.png" alt="stop" width="10%" height="10%">
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_lab_saga_orchestrator">Lab: Saga Orchestrator</h2>
-<div class="sectionbody">
-<div class="imageblock text-center">
-<div class="content">
-<img src="./images/stop.png" alt="stop" width="10%" height="10%">
-</div>
-</div>
-</div>
-</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-12-06 12:11:19 UTC
+Last updated 2024-12-09 08:33:40 UTC
 </div>
 </div>
 </body>
