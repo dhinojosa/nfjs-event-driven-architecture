@@ -550,7 +550,7 @@ pre.pygments .tok-il { color: #40a070 } /* Literal.Number.Integer.Long */
 <p>Create a topic called <code>my_orders</code> in Apache Kafka, with a replication factor of <code>1</code> and <code>3</code> partitions</p>
 </li>
 <li>
-<p>Create a producer called <code>MyProducer</code> inside of a package <code>com.evolutionnext</code> with the following content:</p>
+<p>Create a producer called <code>MyProducer</code> inside of a package <code>com.evolutionnext.producers</code> with the following content:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="pygments highlight"><code data-lang="java"><span></span><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">com.evolutionnext.producers</span><span class="tok-p">;</span>
@@ -647,7 +647,7 @@ pre.pygments .tok-il { color: #40a070 } /* Literal.Number.Integer.Long */
 <p>Use <code>kafka-console-consumer</code> within <code>broker</code> container to consume message from <code>my_orders</code></p>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="sh"><span></span>./bin/kafka-console-consumer<span class="tok-w"> </span><span class="tok-se">\</span>
+<pre class="pygments highlight"><code data-lang="sh"><span></span>kafka-console-consumer<span class="tok-w"> </span><span class="tok-se">\</span>
 <span class="tok-w">  </span>--bootstrap-server<span class="tok-w"> </span>localhost:9092<span class="tok-w"> </span><span class="tok-se">\</span>
 <span class="tok-w">  </span>--topic<span class="tok-w"> </span>my_orders<span class="tok-w"> </span>--from-beginning<span class="tok-w"> </span><span class="tok-se">\</span>
 <span class="tok-w">  </span>--key-deserializer<span class="tok-w"> </span>org.apache.kafka.common.serialization.StringDeserializer<span class="tok-w"> </span><span class="tok-se">\</span>
@@ -658,7 +658,7 @@ pre.pygments .tok-il { color: #40a070 } /* Literal.Number.Integer.Long */
 </div>
 </li>
 <li>
-<p>Stop the <code>kafka-console-consumer</code> instance and but keep the <code>MyProducer</code> running. We need this to keep going and provide a lot of information</p>
+<p>Stop the <code>kafka-console-consumer</code> instance, but keep the <code>MyProducer</code> running. We need this to keep going and provide a lot of information</p>
 </li>
 </ol>
 </div>
@@ -675,7 +675,7 @@ pre.pygments .tok-il { color: #40a070 } /* Literal.Number.Integer.Long */
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create a consumer called <code>MyConsumer</code> inside of a package <code>com.evolutionnext</code> with the following content:</p>
+<p>Create a consumer called <code>MyConsumer</code> inside of a package <code>com.evolutionnext.consumers</code> with the following content:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="pygments highlight"><code data-lang="java"><span></span><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">com.evolutionnext.consumers</span><span class="tok-p">;</span>
@@ -765,7 +765,7 @@ pre.pygments .tok-il { color: #40a070 } /* Literal.Number.Integer.Long */
 </div>
 </li>
 <li>
-<p>Run <code>MyProducer</code> from the previous lab</p>
+<p>Ensure <code>MyProducer</code> from the previous lab is still running.</p>
 </li>
 <li>
 <p>Run <code>MyConsumer</code> in either your IDE or with Maven in the <em>kafka-client</em> folder
@@ -786,7 +786,7 @@ revoked and for what reason.</p>
 <p>Run a total of 4 consumers, what is happening? Try different combinations</p>
 </li>
 <li>
-<p>Stop all consumers and producers</p>
+<p>Stop all consumers, but keep the producer running</p>
 </li>
 </ol>
 </div>
@@ -813,6 +813,8 @@ revoked and for what reason.</p>
 
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.time.Duration</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.time.Instant</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.time.ZoneId</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.time.format.DateTimeFormatter</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.time.temporal.ChronoUnit</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Collection</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Collections</span><span class="tok-p">;</span>
@@ -828,6 +830,14 @@ revoked and for what reason.</p>
 <span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">topicPartitions</span><span class="tok-p">.</span><span class="tok-na">stream</span><span class="tok-p">()</span>
 <span class="tok-w">                </span><span class="tok-p">.</span><span class="tok-na">map</span><span class="tok-p">(</span><span class="tok-n">tp</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-n">tp</span><span class="tok-p">.</span><span class="tok-na">topic</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">&quot; - &quot;</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">tp</span><span class="tok-p">.</span><span class="tok-na">partition</span><span class="tok-p">())</span>
 <span class="tok-w">                </span><span class="tok-p">.</span><span class="tok-na">collect</span><span class="tok-p">(</span><span class="tok-n">Collectors</span><span class="tok-p">.</span><span class="tok-na">joining</span><span class="tok-p">(</span><span class="tok-s">&quot;,&quot;</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">formatTime</span><span class="tok-p">(</span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">timestamp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">timeZone</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">ZoneId</span><span class="tok-w"> </span><span class="tok-n">zoneId</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">ZoneId</span><span class="tok-p">.</span><span class="tok-na">of</span><span class="tok-p">(</span><span class="tok-n">timeZone</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">Instant</span><span class="tok-w"> </span><span class="tok-n">instant</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Instant</span><span class="tok-p">.</span><span class="tok-na">ofEpochMilli</span><span class="tok-p">(</span><span class="tok-n">timestamp</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">DateTimeFormatter</span><span class="tok-w"> </span><span class="tok-n">formatter</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">DateTimeFormatter</span><span class="tok-p">.</span><span class="tok-na">ofPattern</span><span class="tok-p">(</span><span class="tok-s">&quot;yyyy-MM-dd HH:mm:ss z&quot;</span><span class="tok-p">)</span>
+<span class="tok-w">                </span><span class="tok-p">.</span><span class="tok-na">withZone</span><span class="tok-p">(</span><span class="tok-n">zoneId</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">formatter</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-n">instant</span><span class="tok-p">);</span>
 <span class="tok-w">    </span><span class="tok-p">}</span>
 
 <span class="tok-w">    </span><span class="tok-nd">@SuppressWarnings</span><span class="tok-p">({</span><span class="tok-w"> </span><span class="tok-s">&quot;Duplicates&quot;</span><span class="tok-w"> </span><span class="tok-p">})</span>
@@ -859,7 +869,7 @@ revoked and for what reason.</p>
 <span class="tok-w">                        </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">&quot;Partition assigned:&quot;</span><span class="tok-w"> </span><span class="tok-o">+</span>
 <span class="tok-w">                                </span><span class="tok-n">collectionTopicPartitionToString</span><span class="tok-p">(</span><span class="tok-n">collection</span><span class="tok-p">));</span>
 
-<span class="tok-w">                        </span><span class="tok-c1">//Rewinding Five Minutes Back</span>
+<span class="tok-w">                        </span><span class="tok-c1">// Rewinding Five Minutes Back</span>
 <span class="tok-w">                        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">startTimestamp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Instant</span><span class="tok-p">.</span><span class="tok-na">now</span><span class="tok-p">().</span><span class="tok-na">minusSeconds</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">60</span><span class="tok-p">).</span><span class="tok-na">toEpochMilli</span><span class="tok-p">();</span>
 
 <span class="tok-w">                        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">Map</span><span class="tok-o">&lt;</span><span class="tok-n">TopicPartition</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Long</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">timestampsToSearch</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">HashMap</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
@@ -892,6 +902,7 @@ revoked and for what reason.</p>
 <span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;timestamp: %d\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">record</span><span class="tok-p">.</span><span class="tok-na">timestamp</span><span class="tok-p">());</span>
 <span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;timeStampType: %s\n&quot;</span><span class="tok-p">,</span>
 <span class="tok-w">                        </span><span class="tok-kd">record</span><span class="tok-err">.</span><span class="tok-nc">timestampType</span><span class="tok-p">());</span>
+<span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;formattedTimeStamp: %s\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">formatTime</span><span class="tok-p">(</span><span class="tok-n">record</span><span class="tok-p">.</span><span class="tok-na">timestamp</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-s">&quot;America/New_York&quot;</span><span class="tok-p">));</span>
 <span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;topic: %s\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">record</span><span class="tok-p">.</span><span class="tok-na">topic</span><span class="tok-p">());</span>
 <span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;key: %s\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">record</span><span class="tok-p">.</span><span class="tok-na">key</span><span class="tok-p">());</span>
 <span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">format</span><span class="tok-p">(</span><span class="tok-s">&quot;value: %s\n&quot;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">record</span><span class="tok-p">.</span><span class="tok-na">value</span><span class="tok-p">());</span>
@@ -912,11 +923,11 @@ revoked and for what reason.</p>
 <p>Run <code>MyProducer</code> from the previous lab, if it still isn&#8217;t running</p>
 </li>
 <li>
-<p>Run <code>MyRewindConsumer</code> in either your IDE or with Maven in the <em>advanced_java</em> folder
+<p>Run <code>MyRewindConsumer</code> in either your IDE or with Maven in the <em>nfjs-event-driven-architecture</em> folder
 using <code>mvn exec:java -Dexec.mainClass="com.xyzcorp.MyRewindConsumer"</code> and view the results. Since we are controlling the time, we can rewind wherever we need to.</p>
 </li>
 <li>
-<p>Stop all consumers and producers</p>
+<p>Stop all consumers, leave the producer running</p>
 </li>
 </ol>
 </div>
@@ -933,19 +944,16 @@ using <code>mvn exec:java -Dexec.mainClass="com.xyzcorp.MyRewindConsumer"</code>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create a Streams application in a class named <code>MyStreams</code> in the <code>com.evolutionnext</code>
+<p>Create a Streams application in a class named <code>MyStreams</code> in the <code>com.evolutionnext.streams</code>
 package with the following content</p>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="java"><span></span><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">com.evolutionnext</span><span class="tok-p">;</span>
+<pre class="pygments highlight"><code data-lang="java"><span></span><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">com.evolutionnext.streams</span><span class="tok-p">;</span>
 
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.common.serialization.Serdes</span><span class="tok-p">;</span>
-<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.streams.</span><span class="tok-o">&lt;</span><span class="tok-n">strong</span><span class="tok-o">&gt;</span><span class="tok-p">;</span>
-<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.streams.kstream.</span><span class="tok-o">&lt;/</span><span class="tok-n">strong</span><span class="tok-o">&gt;</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.streams.*</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.streams.kstream.*</span><span class="tok-p">;</span>
 
-<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.time.Duration</span><span class="tok-p">;</span>
-<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.time.temporal.ChronoUnit</span><span class="tok-p">;</span>
-<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.time.temporal.TemporalUnit</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Properties</span><span class="tok-p">;</span>
 
 <span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MyStreams</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -984,8 +992,6 @@ package with the following content</p>
 
 <span class="tok-w">        </span><span class="tok-n">KafkaStreams</span><span class="tok-w"> </span><span class="tok-n">streams</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">KafkaStreams</span><span class="tok-p">(</span><span class="tok-n">topology</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">props</span><span class="tok-p">);</span>
 
-<span class="tok-w">        </span><span class="tok-n">streams</span><span class="tok-p">.</span><span class="tok-na">setUncaughtExceptionHandler</span><span class="tok-p">((</span><span class="tok-n">t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">());</span>
-
 <span class="tok-w">        </span><span class="tok-n">streams</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
 
 <span class="tok-w">        </span><span class="tok-n">Runtime</span><span class="tok-p">.</span><span class="tok-na">getRuntime</span><span class="tok-p">().</span><span class="tok-na">addShutdownHook</span><span class="tok-p">(</span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(</span><span class="tok-n">streams</span><span class="tok-p">::</span><span class="tok-n">close</span><span class="tok-p">));</span>
@@ -998,12 +1004,12 @@ package with the following content</p>
 <p>Run in your IDE, or run in Maven using <code>mvn exec:java -Dexec.mainClass="com.evolutionnext.MyStreams"</code></p>
 </li>
 <li>
-<p>Run <code>MyProducer</code> and run <code>kafka_console_consumer</code> that
+<p>Run <code>MyProducer</code> and run <code>kafka_console_consumer</code> in the broker container that
 listens to <code>priority_state_orders</code>. You may also want to shorten
-the sleep time so that more orders come in.</p>
+the sleep time so that more orders come in, or possibly run more than one producer.</p>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="sh"><span></span>./bin/kafka-console-consumer<span class="tok-w"> </span><span class="tok-se">\</span>
+<pre class="pygments highlight"><code data-lang="sh"><span></span>kafka-console-consumer<span class="tok-w"> </span><span class="tok-se">\</span>
 <span class="tok-w">  </span>--bootstrap-server<span class="tok-w"> </span>localhost:9092<span class="tok-w"> </span><span class="tok-se">\</span>
 <span class="tok-w">  </span>--topic<span class="tok-w"> </span>priority_state_orders<span class="tok-w"> </span>--from-beginning<span class="tok-w"> </span><span class="tok-se">\</span>
 <span class="tok-w">  </span>--key-deserializer<span class="tok-w"> </span>org.apache.kafka.common.serialization.StringDeserializer<span class="tok-w"> </span><span class="tok-se">\</span>
@@ -1017,7 +1023,7 @@ the sleep time so that more orders come in.</p>
 <p>Run <code>kafka_console_consumer</code> that listens to <code>state_orders_count</code>. This is the state representation</p>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="sh"><span></span>./bin/kafka-console-consumer<span class="tok-w"> </span><span class="tok-se">\</span>
+<pre class="pygments highlight"><code data-lang="sh"><span></span>kafka-console-consumer<span class="tok-w"> </span><span class="tok-se">\</span>
 --bootstrap-server<span class="tok-w"> </span>localhost:9092<span class="tok-w"> </span><span class="tok-se">\</span>
 <span class="tok-w">  </span>--topic<span class="tok-w"> </span>state_orders_count<span class="tok-w"> </span>--from-beginning<span class="tok-w"> </span><span class="tok-se">\</span>
 <span class="tok-w">  </span>--key-deserializer<span class="tok-w"> </span>org.apache.kafka.common.serialization.StringDeserializer<span class="tok-w"> </span><span class="tok-se">\</span>
@@ -1050,7 +1056,7 @@ the sleep time so that more orders come in.</p>
 <div class="content">
 <pre class="pygments highlight"><code data-lang="avro"><span></span>{
   &quot;type&quot;: &quot;record&quot;,
-  &quot;namespace&quot;: &quot;com.xyzcorp&quot;,
+  &quot;namespace&quot;: &quot;com.evolutionnext.models&quot;,
   &quot;name&quot;: &quot;Order&quot;,
   &quot;fields&quot;: [
     {
@@ -1106,16 +1112,20 @@ with a replication factor of <code>1</code> and <code>3</code> partitions</p>
 </li>
 <li>
 <p>Create a producer called <code>MyAvroProducer</code> inside the package
-of <code>com.xyzcorp</code> with the following content</p>
+of <code>com.evolutionnext.producers</code> with the following content</p>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="java"><span></span><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">com.xyzcorp</span><span class="tok-p">;</span>
+<pre class="pygments highlight"><code data-lang="java"><span></span><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">com.evolutionnext.producers</span><span class="tok-p">;</span>
 
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.clients.producer.KafkaProducer</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.clients.producer.ProducerConfig</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.clients.producer.ProducerRecord</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.clients.producer.RecordMetadata</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.apache.kafka.common.serialization.StringSerializer</span><span class="tok-p">;</span>
+
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">com.evolutionnext.models.Gender</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">com.evolutionnext.models.Order</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">com.evolutionnext.models.Shipping</span><span class="tok-p">;</span>
 
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Properties</span><span class="tok-p">;</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Random</span><span class="tok-p">;</span>
@@ -1191,10 +1201,10 @@ of <code>com.xyzcorp</code> with the following content</p>
 </div>
 </li>
 <li>
-<p>Run a ksql terminal that will attach to the KSQL Server using</p>
+<p>Run a ksql terminal by attaching a shell on <code>ksqldb-cli</code> container that will attach to the KSQL Server using:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="sh"><span></span>$<span class="tok-w"> </span>ksql<span class="tok-w"> </span>http://localhost:8088</code></pre>
+<pre class="pygments highlight"><code data-lang="sh"><span></span>ksql<span class="tok-w"> </span>http://kqldb-server:8088</code></pre>
 </div>
 </div>
 </li>
@@ -1233,11 +1243,10 @@ query above works, turn it into a persistent <em>table</em> query and persist th
 a topic called <code>next_day_shipping_by_state</code></p>
 </li>
 <li>
-<p>On a new terminal, enter the following at the command line in the <em>confluent-6.x.x</em>
-directory to view your results</p>
+<p>Attach a shell on the <code>schema-registry</code> container and run the following</p>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="sh"><span></span>./bin/kafka-avro-console-consumer<span class="tok-w"> </span><span class="tok-se">\</span>
+<pre class="pygments highlight"><code data-lang="sh"><span></span>kafka-avro-console-consumer<span class="tok-w"> </span><span class="tok-se">\</span>
 <span class="tok-w">  </span>--bootstrap-server<span class="tok-w"> </span>localhost:9092<span class="tok-w"> </span><span class="tok-se">\</span>
 <span class="tok-w">  </span>--topic<span class="tok-w"> </span>next_day_shipping_by_state<span class="tok-w"> </span><span class="tok-se">\</span>
 <span class="tok-w">  </span>--from-beginning<span class="tok-w"> </span><span class="tok-se">\</span>
@@ -1253,7 +1262,7 @@ the query identifier for the persistent query you just ran, then call
 <code>TERMINATE</code> with the identifier.</p>
 </li>
 <li>
-<p>Exit ksql</p>
+<p>Exit ksqldb</p>
 </li>
 </ol>
 </div>
@@ -1593,7 +1602,7 @@ VALUE_FORMAT = &#39;AVRO&#39;
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-12-09 08:33:40 UTC
+Last updated 2024-12-09 10:45:02 UTC
 </div>
 </div>
 </body>
