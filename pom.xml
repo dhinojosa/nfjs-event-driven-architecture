@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.evolutionnext</groupId>
@@ -21,7 +21,8 @@
         <confluent.version>7.8.0</confluent.version>
     </properties>
 
-    <!--necessary to resolve confluent dependencies-->
+    <!--necessary
+    to resolve confluent dependencies-->
     <repositories>
         <repository>
             <id>confluent</id>
@@ -72,6 +73,21 @@
             <artifactId>kafka-avro-serializer</artifactId>
             <version>${confluent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.15.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.15.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.15.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -119,13 +135,7 @@
                         </goals>
                         <phase>generate-sources</phase>
                         <configuration>
-                            <imports>
-                                <import>${project.basedir}/src/main/avro/OrderItem.avsc</import>
-                                <import>${project.basedir}/src/main/avro/PaymentApproved.avsc</import>
-                                <import>${project.basedir}/src/main/avro/PaymentDeclined.avsc</import>
-                                <import>${project.basedir}/src/main/avro/StockReleased.avsc</import>
-                                <import>${project.basedir}/src/main/avro/StockReserved.avsc</import>
-                            </imports>
+                            <imports />
                             <includes>
                                 <include>*.avsc</include>
                             </includes>
