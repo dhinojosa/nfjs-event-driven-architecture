@@ -37,35 +37,6 @@ public class OrderEventKafkaPublisher implements OrderEventPublisher {
     }
 
     private void publishToKafka(Order order) {
-        try (KafkaProducer<String, Integer> producer = new KafkaProducer<>(getProperties())) {
-            ProducerRecord<String, Integer> producerRecord =
-                new ProducerRecord<>("orders_plain", order.getState(), order.getTotal());
-            producer.send(producerRecord, (metadata, e) -> {
-                if (metadata != null) {
-                    System.out.println(producerRecord.key());
-                    System.out.println(producerRecord.value());
-
-                    if (metadata.hasOffset()) {
-                        System.out.format("offset: %d\n",
-                            metadata.offset());
-                    }
-                    System.out.format("partition: %d\n",
-                        metadata.partition());
-                    System.out.format("timestamp: %d\n",
-                        metadata.timestamp());
-                    System.out.format("topic: %s\n", metadata.topic());
-                    System.out.format("toString: %s\n",
-                        metadata);
-                } else {
-                    System.out.println("ERROR! ");
-                    String firstException =
-                        Arrays.stream(e.getStackTrace())
-                            .findFirst()
-                            .map(StackTraceElement::toString)
-                            .orElse("Undefined Exception");
-                    System.out.println(firstException);
-                }
-            });
-        }
+        
     }
 }
