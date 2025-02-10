@@ -5,7 +5,7 @@
     "fields": [
         {
             "name": "productId",
-            "type": "string"
+            "type": "long"
         },
         {
             "name": "quantity",

@@ -14,5 +14,6 @@ public class OrderApplicationService {
 
     public void submit(Order order) {
         order.events().forEach(orderEventPublisher::publish);
+        order.clearEvents();
     }
 }
