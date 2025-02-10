@@ -1,0 +1,9 @@
+{
+    "type": "record",
+    "name": "OrderCancelledMessage",
+    "namespace": "com.evolutionnext.adapter.out",
+    "fields": [
+        {"name": "orderId", "type": "string"},
+        {"name": "reason", "type": "string"}
+    ]
+}

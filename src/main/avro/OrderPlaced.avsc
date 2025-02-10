@@ -1,0 +1,8 @@
+{
+    "type": "record",
+    "name": "OrderPlacedMessage",
+    "namespace": "com.evolutionnext.adapter.out",
+    "fields": [
+        {"name": "order", "type": "com.evolutionnext.adapter.out.OrderMessage"}
+    ]
+}

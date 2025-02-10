@@ -9,7 +9,7 @@
     <artifactId>nfjs-event-driven-architecture</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>nfjs-kafka-full-day</name>
+    <name>nfjs-event-driven-architecture</name>
     <url>https://github.com/dhinojosa/nfjs-event-driven-architecture</url>
 
     <properties>
@@ -135,7 +135,13 @@
                         </goals>
                         <phase>generate-sources</phase>
                         <configuration>
-                            <imports />
+                            <imports>
+                                <import>${project.basedir}/src/main/avro/OrderItem.avsc</import>
+                                <import>${project.basedir}/src/main/avro/Order.avsc</import>
+                                <import>${project.basedir}/src/main/avro/OrderPlaced.avsc</import>
+                                <import>${project.basedir}/src/main/avro/OrderShipped.avsc</import>
+                                <import>${project.basedir}/src/main/avro/OrderCancelled.avsc</import>
+                            </imports>
                             <includes>
                                 <include>*.avsc</include>
                             </includes>

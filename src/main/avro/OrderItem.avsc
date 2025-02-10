@@ -1,0 +1,19 @@
+{
+    "type": "record",
+    "name": "OrderItemMessage",
+    "namespace": "com.evolutionnext.adapter.out",
+    "fields": [
+        {
+            "name": "productId",
+            "type": "string"
+        },
+        {
+            "name": "quantity",
+            "type": "int"
+        },
+        {
+            "name": "price",
+            "type": "int"
+        }
+    ]
+}

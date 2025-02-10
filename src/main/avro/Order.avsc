@@ -1,0 +1,26 @@
+{
+    "type": "record",
+    "name": "OrderMessage",
+    "namespace": "com.evolutionnext.adapter.out",
+    "fields": [
+        {
+            "name": "orderId",
+            "type": "string"
+        },
+        {
+            "name": "customerId",
+            "type": "string"
+        },
+        {
+            "name": "orderItems",
+            "type": {
+                "type": "array",
+                "items": {
+                    "type": "com.evolutionnext.adapter.out.OrderItemMessage",
+                    "name": "OrderItem",
+                    "namespace": "com.evolutionnext.adapter.out"
+                }
+            }
+        }
+    ]
+}
