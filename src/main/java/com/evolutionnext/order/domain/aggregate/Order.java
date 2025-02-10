@@ -31,19 +31,12 @@ public class Order {
         if (this.status != OrderStatus.CREATED) {
             throw new IllegalStateException("Cannot add items to an order that is not in the NEW state");
         }
-        if (this.status == OrderStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot add items to an order that has been cancelled");
-        }
-
         this.items.add(orderItem);
     }
 
     public void cancelOrder() {
-        if (this.status != OrderStatus.PLACED) {
-            throw new IllegalStateException("Cannot cancel an order that is not in the PLACED state");
-        }
         this.status = OrderStatus.CANCELLED;
-        this.events.add(new OrderCancelled(this));
+        this.events.add(new OrderCancelled(this, "Order cancelled by customer"));
     }
 
     public static Order create(OrderId orderId, CustomerId customerId, String state){
@@ -89,5 +82,13 @@ public class Order {
 
     public List<OrderEvent> events() {
         return Collections.unmodifiableList(events);
+    }
+
+    public List<OrderItem> getOrderItems() {
+        return Collections.unmodifiableList(items);
+    }
+
+    public void clearEvents() {
+        events.clear();
     }
 }
