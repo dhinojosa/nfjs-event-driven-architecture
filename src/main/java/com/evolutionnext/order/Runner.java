@@ -2,10 +2,7 @@ package com.evolutionnext.order;
 
 
 import com.evolutionnext.order.adapter.out.OrderEventKafkaPublisher;
-import com.evolutionnext.order.domain.aggregate.Order;
-import com.evolutionnext.order.domain.aggregate.OrderId;
-import com.evolutionnext.order.domain.aggregate.OrderItem;
-import com.evolutionnext.order.domain.aggregate.ProductId;
+import com.evolutionnext.order.domain.aggregate.*;
 import com.evolutionnext.order.domain.application.OrderApplicationService;
 
 import java.util.Random;
@@ -33,9 +30,10 @@ public class Runner {
             String state = states[random.nextInt(states.length)];
             int amount = random.nextInt(300) + 1;
             long productId = random.nextLong(2000L) + 1L;
+            long customerId = random.nextLong(120L) + 1L;
             int quantity = random.nextInt(20) + 1;
 
-            Order order = Order.create(new OrderId(UUID.randomUUID().toString()), state);
+            Order order = Order.create(new OrderId(UUID.randomUUID().toString()), new CustomerId(String.valueOf(customerId)), state);
             order.addOrderItem(new OrderItem(new ProductId(productId), quantity, amount));
             order.placeOrder();
 
