@@ -1,0 +1,6 @@
+{
+    "type": "record",
+    "name": "OrderCreatedMessage",
+    "namespace": "com.evolutionnext.messaging",
+    "fields": []
+}

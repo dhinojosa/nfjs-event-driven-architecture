@@ -1,0 +1,31 @@
+{
+    "type": "record",
+    "name": "OrderItemMessage",
+    "namespace": "com.evolutionnext.messaging",
+    "fields": [
+        {
+            "name": "productId",
+            "type": "long"
+        },
+        {
+            "name": "orderItemType",
+            "type": {
+                "type": "enum",
+                "name": "orderItemType",
+                "symbols": [
+                    "ADD",
+                    "REMOVE"
+                ]
+            }
+        },
+        {
+            "name": "quantity",
+            "type": "int"
+        },
+        {
+            "name": "price",
+            "type": "int",
+            "doc": "This is tough, the price can change in the middle of shopping, but this is a one-day workshop. Hand waving"
+        }
+    ]
+}

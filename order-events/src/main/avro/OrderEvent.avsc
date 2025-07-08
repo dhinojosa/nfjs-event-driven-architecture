@@ -1,0 +1,39 @@
+{
+    "type": "record",
+    "name": "OrderEventMessage",
+    "namespace": "com.evolutionnext.messaging",
+    "fields": [
+        {
+            "name": "orderId",
+            "type": "string"
+        },
+        {
+            "name": "timestamp",
+            "type": {
+                "type": "long",
+                "logicalType": "timestamp-millis"
+            }
+        },
+        {
+            "name": "eventType",
+            "type": {
+                "type": "enum",
+                "name": "EventType",
+                "symbols": [
+                    "ORDER_CREATED",
+                    "ORDER_PLACED",
+                    "ORDER_CANCELLED"
+                ]
+            }
+        },
+        {
+            "name": "event",
+            "type": [
+                "com.evolutionnext.messaging.OrderPlacedMessage",
+                "com.evolutionnext.messaging.OrderCancelledMessage",
+                "com.evolutionnext.messaging.OrderCreatedMessage",
+                "com.evolutionnext.messaging.OrderItemMessage"
+            ]
+        }
+    ]
+}
