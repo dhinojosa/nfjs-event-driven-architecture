@@ -1,8 +1,8 @@
-package com.evolutionnext.order.domain.aggregate;
+package com.evolutionnext.domain.aggregate;
 
 
 public class CustomerId {
-   private final String value;
+    private final String value;
 
     public CustomerId(String value) {
         this.value = value;

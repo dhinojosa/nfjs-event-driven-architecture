@@ -1,4 +1,4 @@
-package com.evolutionnext.order.domain.aggregate;
+package com.evolutionnext.domain.aggregate;
 
 
 public enum OrderStatus {

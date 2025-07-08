@@ -1,10 +1,10 @@
-package com.evolutionnext.order.domain.application;
+package com.evolutionnext.application;
 
+import com.evolutionnext.port.in.ForClientSubmitOrder;
+import com.evolutionnext.port.out.OrderEventPublisher;
+import com.evolutionnext.domain.aggregate.Order;
 
-import com.evolutionnext.order.domain.aggregate.Order;
-import com.evolutionnext.order.domain.aggregate.OrderEventPublisher;
-
-public class OrderApplicationService {
+public class OrderApplicationService implements ForClientSubmitOrder {
 
     private final OrderEventPublisher orderEventPublisher;
 
