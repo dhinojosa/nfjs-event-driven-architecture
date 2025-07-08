@@ -4,13 +4,10 @@ import com.evolutionnext.order.domain.aggregate.Order;
 import com.evolutionnext.order.domain.aggregate.OrderEvent;
 import com.evolutionnext.order.domain.aggregate.OrderEventPublisher;
 import com.evolutionnext.order.domain.aggregate.OrderPlaced;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -37,6 +34,6 @@ public class OrderEventKafkaPublisher implements OrderEventPublisher {
     }
 
     private void publishToKafka(Order order) {
-        
+
     }
 }
