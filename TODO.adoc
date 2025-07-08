@@ -1,0 +1,63 @@
+= TODO
+
+== Microservices
+
+=== Orders
+
+. `Producer` is here
+. Built with Ports and Adapters
+. Web Front End
+.. Customer Drop down `1` to `10` each with a label of a customer, hard coded
+.. Products Drop down `1` to `20` each with a label of a product, hard coded
+.. Submit the Order which will forward to the `payment` front end with `orderId` to collect payment information
+.. Must track the order through the `OrderId`. We will need a page called create order which initializes with an OrderId.
+.. Every subsequent added order item will add to the order id.
+.. There should be a submitted button.
+.. Message Sent are in "Messages for Orders" and have an appropriate schema
+
+=== Payments
+
+. `Consumer` is here
+. Built with Ports and Adapters
+. Web Front End
+.. Initial Page shows the order and total cost (from local datastore derived from events)
+.. Waits for `OrderPlaced` to finalize the order.
+.. Initial Page shows a loading swirl and waits until the event is ready
+.. Captures the credit card information.
+.. When done send `paymentSuccessful` or `paymentFailed`
+. `Producer` is required to send `PaymentSuccessful`, or `PaymentFailed`
+. `PaymentFailed` sent after number of retries (from the environment variable)
+
+== Messages for Orders
+
+* `orderCreated` - `orderid`, `customerid`, `timestamp`
+* `orderCancelled` - `orderid`, `reason`, `timestamp`
+* `orderItemAdded` - `orderId`, `productid`, `quantity`, `price`, `timestamp`
+* `orderItemRemoved` - `orderId`, `productid`, `quantity`, `timestamp`
+* `orderPlaced` - `orderId`, `timestamp`
+
+== Streaming
+
+* Create a Streaming application that reacts to `Orders` messages
+* If `orderCreated` initialize the state with key `orderId` with the payload `{amount: 0, status: in-process}`
+* If `orderCancelled` tombstone the state with key `orderId` and value `null`
+* If `orderItemAdded` add to the state with key `orderId` and value `{amount: quantity * price, status:in-process}`
+* If `orderItemRemoved` remove from the state with key `orderId` and value `{amount: quantity * price, status:in-process}`
+* If `orderPlaced` then we can react with a payment, we will forward over to the payment front end. The state will be updated to key `orderId` and value `{amount: (from the state store), status: placed}
+
+== Messages for Payments
+
+* `paymentSuccessful` key: `orderId` value: `receipt`
+* `paymentFailed` key: `orderId`, value: `reason`
+
+== Ids
+
+* OrderId: UUID
+** Orders are typically a great candidate for UUIDs because they often evolve over time and may interact with external systems (e.g., analytics services or external APIs).
+** A UUID ensures global uniqueness for orders, regardless of where they are created or managed.
+* ProductId: Number ID
+** Products are often stored in a centralized catalog or database (e.g., inventory system), making them a good fit for numeric IDs.
+** If your is consistent across the business and used frequently in APIs, logs, or reports, numeric IDs keep things simple and efficient. `ProductId`
+* CustomerId: UUID
+** Customers frequently interact with multiple services, (e.g., user profiles, orders, payment systems). UUIDs make it easier to uniquely identify a customer across these different subsystems.
+** Additionally, UUIDs add a layer of security for customer data when exposed via APIs or URLs.
