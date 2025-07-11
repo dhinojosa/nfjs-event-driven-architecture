@@ -53,7 +53,7 @@ public class OrdersServer {
         server.createContext("/", http -> {
             logger.info("Received GET request for /");
             String path = http.getRequestURI().getPath();
-
+            logger.info("   Sending to path: {}", path);
             // If the path is "/", serve "index.html" by default
             if (path.equals("/")) {
                 path = "index.html";

@@ -6,6 +6,8 @@ const products = [
     { id: 5, name: "Monitor", price: 300 }
 ];
 
+let currentOrderId = null;
+
 // Generate product dropdown dynamically with selected product filtering
 function generateProductDropdown(selectedProductId = null) {
     const selectedProductIds = Array.from(document.querySelectorAll(".product-select"))
@@ -255,5 +257,42 @@ function updateOrderUI(order) {
     document.getElementById("order-total").textContent = `$${order.total.toFixed(2)}`;
 }
 
-// Automatically Load Items on Page Load
-window.onload = loadCatalog;
+function loadOrderId() {
+    function getCookieValue(cookieName) {
+        const cookies = document.cookie.split("; ");
+        for (let cookie of cookies) {
+            const [name, value] = cookie.split("=");
+            if (name === cookieName) {
+                return value;
+            }
+        }
+        return null; // Return null if the cookie is not found
+    }
+
+    currentOrderId = getCookieValue("eda-orderId");
+
+    if (currentOrderId) {
+        console.log("Order ID:", currentOrderId);
+        // Update the <h1> element with the OrderId
+        const heading = document.querySelector("Th1");
+        if (heading) {
+            heading.textContent = `Create Your Order: ${currentOrderId}`;
+        }
+    } else {
+        console.log("Order ID cookie not found.");
+    }
+}
+
+// Wrapper function to call both loadCatalog and loadOrderId
+function initializePage() {
+    console.log("Initializing Catalog");
+    loadCatalog();
+    console.log("Initializing Order ID" + currentOrderId);
+    loadOrderId();
+}
+
+
+
+// Assign the wrapper function to window.onload
+window.onload = initializePage;
+
