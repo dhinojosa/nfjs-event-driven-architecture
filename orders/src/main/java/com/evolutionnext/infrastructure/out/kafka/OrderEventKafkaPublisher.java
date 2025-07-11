@@ -12,11 +12,14 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.Properties;
 
 public class OrderEventKafkaPublisher implements OrderEventPublisher {
+    private static final Logger logger = LoggerFactory.getLogger(OrderEventKafkaPublisher.class);
 
     private final Producer<String, OrderEventMessage> producer;
     private static final String TOPIC = "order-events";
@@ -66,7 +69,7 @@ public class OrderEventKafkaPublisher implements OrderEventPublisher {
     }
 
     private OrderEventMessage createOrderCreatedMessage(OrderCreated orderCreated) {
-        return new OrderEventMessage(orderCreated.order().getOrderId().id(),
+        return new OrderEventMessage(orderCreated.order().getOrderId().id().toString(),
             Instant.now(), EventType.ORDER_CREATED, new OrderCreatedMessage());
     }
 }

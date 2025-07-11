@@ -4,6 +4,8 @@ import com.evolutionnext.domain.events.OrderCancelled;
 import com.evolutionnext.domain.events.OrderCreated;
 import com.evolutionnext.domain.events.OrderEvent;
 import com.evolutionnext.domain.events.OrderPlaced;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -14,7 +16,7 @@ public class Order {
     private OrderStatus status;
     private final List<OrderItem> items;
     private final List<OrderEvent> events = new ArrayList<>();
-
+    private final Logger logger = LoggerFactory.getLogger(Order.class);
     protected Order(OrderId orderId, CustomerId customerId, String state) {
         this.state = state;
         this.orderId = orderId;
@@ -28,11 +30,13 @@ public class Order {
         if (this.status != OrderStatus.CREATED) {
             throw new IllegalStateException("Order cannot be placed in its current state");
         }
+        logger.info("Placing order: {}", this);
         this.status = OrderStatus.PLACED;
         this.events.add(new OrderPlaced(this));
     }
 
     public void addOrderItem(OrderItem orderItem) {
+        logger.info("Adding item: {} to order: {}", orderItem, this);
         if (this.status != OrderStatus.CREATED) {
             throw new IllegalStateException("Cannot add items to an order that is not in the NEW state");
         }
@@ -40,6 +44,7 @@ public class Order {
     }
 
     public void cancelOrder() {
+        logger.info("Canceling order: {}", this);
         this.status = OrderStatus.CANCELLED;
         this.events.add(new OrderCancelled(this, "Order cancelled by customer"));
     }

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Order Management</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/catalog.js" defer></script>
+</head>
+<body>
+    <h1>Create Your Order</h1>
+
+    <div id="error-message" style="color: red; display: none;"></div>
+
+    <table id="order-table" border="1">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Line items dynamically added here -->
+        </tbody>
+    </table>
+
+    <p>
+        <button onclick="addLineItem()">Add Line Item</button>
+    </p>
+
+    <p><strong>Total:</strong> <span id="order-total">$0.00</span></p>
+
+    <!-- Submit Order Button -->
+    <button id="submit-order-btn" onclick="submitOrder()">Submit Order</button>
+</body>
+</html>

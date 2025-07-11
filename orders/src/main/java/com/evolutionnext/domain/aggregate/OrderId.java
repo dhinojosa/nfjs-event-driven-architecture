@@ -1,5 +1,7 @@
 package com.evolutionnext.domain.aggregate;
 
 
-public record OrderId(String id) {
+import java.util.UUID;
+
+public record OrderId(UUID id) {
 }
