@@ -36,6 +36,10 @@ function generateProductDropdown(selectedProductId = null) {
 function addLineItem() {
     const tableBody = document.querySelector("#order-table tbody");
     const newRow = document.createElement("tr");
+
+    // Generate a UUID for this line item
+    const lineItemUUID = crypto.randomUUID();
+
     newRow.innerHTML = `
         <td>${generateProductDropdown()}</td>
         <td>
@@ -44,7 +48,9 @@ function addLineItem() {
         <td class="price-cell">$0.00</td>
         <td>
             <button onclick="deleteLineItem(event)">Remove</button>
+            <input type="hidden" class="line-item-uuid" value="${lineItemUUID}">
         </td>
+
     `;
     tableBody.appendChild(newRow);
     updateDropdowns();
@@ -98,6 +104,7 @@ function updateTotal() {
 }
 
 // Submit the entire order to the backend
+// TODO: I don't need the elements here remove rows.forEach soon
 function submitOrder() {
     const orderItems = [];
     const rows = document.querySelectorAll("#order-table tbody tr");
