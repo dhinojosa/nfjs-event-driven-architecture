@@ -42,10 +42,16 @@ function handleLineItemChange(event) {
         return;
     }
 
-    const uuid = row.querySelector(".line-item-uuid").value;
-    const submitted = row.querySelector(".line-item-submitted").value === "true";
     const productSelect = row.querySelector(".product-select");
     const selectedProductId = productSelect.value;
+
+    // Quietly skip backend logic if no product is selected
+    if (!selectedProductId) {
+        return;
+    }
+
+    const uuid = row.querySelector(".line-item-uuid").value;
+    const submitted = row.querySelector(".line-item-submitted").value === "true";
     const quantityInput = row.querySelector(".quantity-input").value;
     const priceCell = row.querySelector(".price-cell");
 
