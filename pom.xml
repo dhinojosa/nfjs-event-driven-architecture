@@ -31,8 +31,6 @@
         <confluent.version>7.8.0</confluent.version>
     </properties>
 
-    <!--necessary
-    to resolve confluent dependencies-->
     <repositories>
         <repository>
             <id>confluent</id>
