@@ -178,30 +178,7 @@ function updateTotal() {
 }
 
 // Submit the entire order to the backend
-// TODO: I don't need the elements here remove rows.forEach soon
 function submitOrder() {
-    const orderItems = [];
-    const rows = document.querySelectorAll("#order-table tbody tr");
-
-    rows.forEach((row) => {
-        const productSelect = row.querySelector(".product-select");
-        const quantityInput = row.querySelector(".quantity-input");
-        const priceCell = row.querySelector(".price-cell");
-
-        const productId = productSelect.value;
-        const quantity = parseInt(quantityInput.value, 10) || 1;
-        const price = parseFloat(priceCell.textContent.replace("$", ""));
-
-        if (productId) {
-            orderItems.push({ productId, quantity, price });
-        }
-    });
-
-    if (orderItems.length === 0) {
-        alert("Please add at least one valid line item before submitting the order.");
-        return;
-    }
-
     // Submit the order to the backend
     fetch("/order/submit", {
         method: "POST",
