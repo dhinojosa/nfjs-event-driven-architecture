@@ -61,3 +61,17 @@
 * CustomerId: UUID
 ** Customers frequently interact with multiple services, (e.g., user profiles, orders, payment systems). UUIDs make it easier to uniquely identify a customer across these different subsystems.
 ** Additionally, UUIDs add a layer of security for customer data when exposed via APIs or URLs.
+
+== Resource Endpoints
+
+[options="header"]
+|===
+| HTTP Method | Endpoint | Description
+| `POST` | `/order` | Create a new order and return its UUID.
+| `GET` | `/order/{uuid}` | Retrieve details of a specific order.
+| `POST` | `/order/{uuid}/items` | Add a new item to the order.
+| `PATCH` | `/order/{uuid}/items/{id}` | Update a specific item's quantity/price.
+| `DELETE` | `/order/{uuid}/items/{id}` | Remove an item from the order.
+| `GET` | `/order/{uuid}/items` | Retrieve all items in the order.
+| `DELETE` | `/order/{uuid}` | Cancel or delete the order.
+|===
