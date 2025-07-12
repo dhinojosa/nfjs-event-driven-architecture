@@ -164,34 +164,6 @@ document.addEventListener("DOMContentLoaded", () => {
     addLineItem(); // Add the first row by default
 });
 
-// Utility Function: Get OrderId from cookies
-function getOrderId() {
-    const name = "eda-orderId=";
-    const decodedCookie = decodeURIComponent(document.cookie);
-    const cookies = decodedCookie.split(';');
-    for (const cookie of cookies) {
-        let c = cookie.trim();
-        if (c.indexOf(name) === 0) {
-            return c.substring(name.length, c.length);
-        }
-    }
-    throw new Error("Order ID not found in cookies.");
-}
-
-// Function to Load Product Catalog
-async function loadCatalog() {
-    const res = await fetch('/catalog.json');
-    const products = await res.json();
-    const catalog = document.getElementById('catalog');
-    catalog.innerHTML = products.map(p => `
-      <div>
-        <strong>${p.name}</strong> - $${p.price.toFixed(2)}
-        <input type="number" id="qty-${p.id}" min="1" value="1">
-        <button onclick="addToOrder(${p.id})">Add</button>
-      </div>
-    `).join('');
-}
-
 // Function to Add Item to Order
 async function addToOrder(productId) {
     const quantityInput = document.getElementById(`qty-${productId}`);
@@ -223,12 +195,11 @@ async function addToOrder(productId) {
 }
 
 
-// Function to Refresh Order Information (Optional but Recommended)
+// Function to Refresh Order Information
 async function refreshOrderInfo() {
     try {
-        const response = await fetch("/order.json");
+        const response = await fetch(`/order.json?id=${currentOrderId}`);
         if (!response.ok) throw new Error("Failed to refresh order information.");
-
         const order = await response.json();
         updateOrderUI(order);
     } catch (error) {
@@ -253,45 +224,24 @@ function updateOrderUI(order) {
         orderTable.appendChild(row);
     });
 
+    // Update the header page with the orderID
+    const heading = document.querySelector("h1");
+    if (heading) {
+        heading.textContent = `Create Your Order: ${order.id}`;
+    } else {
+        heading.textContent = `Create Your Order`;
+    }
+
     // Update the order total
     document.getElementById("order-total").textContent = `$${order.total.toFixed(2)}`;
 }
 
-function loadOrderId() {
-    function getCookieValue(cookieName) {
-        const cookies = document.cookie.split("; ");
-        for (let cookie of cookies) {
-            const [name, value] = cookie.split("=");
-            if (name === cookieName) {
-                return value;
-            }
-        }
-        return null; // Return null if the cookie is not found
-    }
-
-    currentOrderId = getCookieValue("eda-orderId");
-
-    if (currentOrderId) {
-        console.log("Order ID:", currentOrderId);
-        // Update the <h1> element with the OrderId
-        const heading = document.querySelector("Th1");
-        if (heading) {
-            heading.textContent = `Create Your Order: ${currentOrderId}`;
-        }
-    } else {
-        console.log("Order ID cookie not found.");
-    }
-}
-
 // Wrapper function to call both loadCatalog and loadOrderId
 function initializePage() {
-    console.log("Initializing Catalog");
-    loadCatalog();
-    console.log("Initializing Order ID" + currentOrderId);
-    loadOrderId();
+    console.log("Initializing Page");
+
+    refreshOrderInfo();
 }
-
-
 
 // Assign the wrapper function to window.onload
 window.onload = initializePage;

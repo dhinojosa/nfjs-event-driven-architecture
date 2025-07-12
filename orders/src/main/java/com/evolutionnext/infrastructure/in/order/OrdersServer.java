@@ -1,27 +1,32 @@
 package com.evolutionnext.infrastructure.in.order;
 
-
-import com.evolutionnext.domain.aggregate.OrderId;
+import com.evolutionnext.application.commands.AddOrderItem;
+import com.evolutionnext.application.commands.ChangeOrderItem;
+import com.evolutionnext.application.commands.CreateOrder;
+import com.evolutionnext.application.commands.DeleteOrder;
 import com.evolutionnext.port.in.ForClientSubmitOrder;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.net.httpserver.*;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpServer;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.*;
-import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.stream.*;
 
 public class OrdersServer {
 
     private final ForClientSubmitOrder forClientSubmitOrder;
-    private static final ConcurrentHashMap<UUID, OrderDTO> ordersMap = new ConcurrentHashMap<>();
+
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private final Logger logger = LoggerFactory.getLogger(OrdersServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrdersServer.class);
 
     public OrdersServer(ForClientSubmitOrder forClientSubmitOrder) {
         this.forClientSubmitOrder = forClientSubmitOrder;
@@ -29,204 +34,164 @@ public class OrdersServer {
 
     public void start(InetSocketAddress addr) throws IOException {
         HttpServer server = HttpServer.create(addr, 0);
-        server.createContext("/orders.html", http -> {
-            if (http.getRequestMethod().equalsIgnoreCase("GET")) {
-                logger.info("Received GET request for orders.html");
+
+        // Create a new order
+        server.createContext("/order", http -> {
+            if ("POST".equalsIgnoreCase(http.getRequestMethod())) {
+                logger.info("Received POST request to create a new order");
                 UUID orderId = UUID.randomUUID();
-                ordersMap.put(orderId, new OrderDTO());
-                HttpCookie newCookie = new HttpCookie("eda-orderId", orderId.toString());
-                http.getResponseHeaders().add("Set-Cookie", newCookie.toString());
-            }
-            try (InputStream is = OrdersServer.class.getClassLoader().getResourceAsStream("orders.html")) {
-                if (is != null) {
-                    byte[] bytes = is.readAllBytes();
-                    http.getResponseHeaders().set("Content-Type", "text/html");
-                    http.sendResponseHeaders(200, bytes.length);
-                    http.getResponseBody().write(bytes);
-                } else {
-                    http.sendResponseHeaders(404, -1);
-                }
-            }
-            http.close();
-        });
-
-        server.createContext("/", http -> {
-            logger.info("Received GET request for /");
-            String path = http.getRequestURI().getPath();
-            logger.info("   Sending to path: {}", path);
-            // If the path is "/", serve "index.html" by default
-            if (path.equals("/")) {
-                path = "index.html";
+                String json = objectMapper.writeValueAsString(Map.of("orderId", orderId));
+                forClientSubmitOrder.submit(new CreateOrder(orderId, Instant.now()));
+                sendJson(http, json);
             } else {
-                // Remove leading "/" to get the actual file name
-                path = path.substring(1);
+                methodNotAllowed(http);
             }
+        });
 
+        // Add an item to an order (POST /order/{uuid}/items)
+        server.createContext("/order", http -> {
+            String path = http.getRequestURI().getPath();
+            if (path.matches("/order/([^/]+)/items") && "POST".equalsIgnoreCase(http.getRequestMethod())) {
+                logger.info("Received POST request to add item to order");
+                String[] parts = path.split("/");
+                UUID orderId = UUID.fromString(parts[2]);
+                String body = new String(http.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                Map<String, String> data = parseForm(body);
+                UUID orderItemId = UUID.randomUUID();
+                long productId = Long.parseLong(data.get("productId"));
+                int quantity = Integer.parseInt(data.get("quantity"));
+                BigDecimal price = new BigDecimal(data.get("price"));
 
-            try (InputStream is = OrdersServer.class.getClassLoader().getResourceAsStream(path)) {
-                if (is != null) {
-                    byte[] bytes = is.readAllBytes();
-                    String contentType = URLConnection.guessContentTypeFromName(path);
-                    if (contentType == null) contentType = guessMime(Path.of(path));
-                    http.getResponseHeaders().set("Content-Type", contentType);
-                    http.sendResponseHeaders(200, bytes.length);
-                    http.getResponseBody().write(bytes);
-                } else {
-                    http.sendResponseHeaders(404, -1);
-                }
+                forClientSubmitOrder.submit(new AddOrderItem(orderId, orderItemId,
+                    productId, quantity, price, Instant.now()));
+
+                String response = objectMapper.writeValueAsString(Map.of("orderItemId", orderItemId));
+                sendJson(http, response);
+            } else {
+                methodNotAllowed(http);
             }
-            http.close();
         });
 
-        server.createContext("/catalog.json", http -> {
-            logger.info("Received GET request for /catalog.json");
-            String json = objectMapper.writeValueAsString(catalog.values());
-            sendJson(http, json);
-        });
+        // Update an item in an order (PATCH /order/{uuid}/items/{id})
+        server.createContext("/order", http -> {
+            String path = http.getRequestURI().getPath();
+            if (path.matches("/order/([^/]+)/items/([^/]+)") && "PATCH".equalsIgnoreCase(http.getRequestMethod())) {
+                logger.info("Received PATCH request to update item in order");
+                String[] parts = path.split("/");
+                UUID orderId = UUID.fromString(parts[2]);
+                UUID orderItemId = UUID.fromString(parts[4]);
 
-        server.createContext("/order.json", http -> {
-            logger.info("Received GET request for /order.json");
-            OrderWithId orderWithId = getOrCreateOrder(http);
-            String json = objectMapper.writeValueAsString(orderWithId.order().toMap());
-            sendJson(http, json);
-        });
+                String body = new String(http.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                Map<String, String> data = parseForm(body);
 
-        server.createContext("/order/add", http -> {
-            logger.info("Received POST request for /order/add");
-            if (!http.getRequestMethod().equalsIgnoreCase("POST")) {
-                http.sendResponseHeaders(405, -1);
-                return;
+                long productId = Long.parseLong(data.get("productId"));
+                int quantity = Integer.parseInt(data.get("quantity"));
+                BigDecimal price = new BigDecimal(data.get("price"));
+
+                forClientSubmitOrder.submit(new ChangeOrderItem(orderId, orderItemId,
+                    productId, quantity, price, Instant.now()));
+
+                http.sendResponseHeaders(204, -1); // No content on success
+            } else {
+                methodNotAllowed(http);
             }
-            String body = new String(http.getRequestBody().readAllBytes());
-            Map<String, String> data = parseForm(body);
-            int id = Integer.parseInt(data.get("id"));
-            int qty = Integer.parseInt(data.get("quantity"));
-            ProductDTO p = catalog.get(id);
-            OrderWithId orderWithId = getOrCreateOrder(http);
-            orderWithId.order().add(p, qty);
-            http.sendResponseHeaders(200, -1);
-            http.close();
         });
 
-        server.createContext("/order/remove", http -> {
-            logger.info("Received POST request for /order/remove");
-            if (!http.getRequestMethod().equalsIgnoreCase("POST")) {
-                http.sendResponseHeaders(405, -1);
-                return;
+        // Retrieve all items in an order (GET /order/{uuid}/items)
+        server.createContext("/order", http -> {
+            String path = http.getRequestURI().getPath();
+            if (path.matches("/order/([^/]+)/items") && "GET".equalsIgnoreCase(http.getRequestMethod())) {
+                logger.info("Received GET request to retrieve items in order");
+                methodNotAllowed(http);
             }
-            String body = new String(http.getRequestBody().readAllBytes());
-            Map<String, String> data = parseForm(body);
-            int id = Integer.parseInt(data.get("id"));
-            OrderWithId orderWithId = getOrCreateOrder(http);
-            orderWithId.order().remove(id);
-            http.sendResponseHeaders(200, -1);
-            http.close();
         });
 
-        server.createContext("/order/submit", http -> {
-            logger.info("Received POST request for /order/submit");
-            UUID orderId = getOrderId(http);
-            HttpCookie cookie = new HttpCookie("orderId", "");
-            cookie.setMaxAge(0);
-            http.getResponseHeaders().add("Set-Cookie", cookie.toString());
-            http.getResponseHeaders().add("Location", "/thank-you.html");
-            http.sendResponseHeaders(302, -1);
-            http.close();
+        // Delete an order (DELETE /order/{uuid})
+        server.createContext("/order", http -> {
+            String path = http.getRequestURI().getPath();
+            if (path.matches("/order/([^/]+)") && "DELETE".equalsIgnoreCase(http.getRequestMethod())) {
+                logger.info("Received DELETE request to cancel or delete the order");
+                String[] parts = path.split("/");
+                UUID orderId = UUID.fromString(parts[2]);
+                forClientSubmitOrder.submit(new DeleteOrder(orderId));
+                logger.info("Order {} successfully deleted or canceled", orderId);
+                http.sendResponseHeaders(204, -1);
+            } else {
+                methodNotAllowed(http);
+            }
         });
 
-        server.setExecutor(null);
+        server.setExecutor(null); // Use the default executor
         server.start();
-        System.out.println("Orders server running on http://localhost:8080");
-    }
-    record ProductDTO(int id, String name, double price) {
-
-    }
-    record OrderItemDTO(ProductDTO productDTO, int quantity) {
-
+        logger.info("Orders server running at http://localhost:{}/", addr.getPort());
     }
 
-    static class OrderDTO {
-        Map<Integer, OrderItemDTO> items = new HashMap<>();
-
-
-        void add(ProductDTO p, int qty) {
-            items.put(p.id(), new OrderItemDTO(p, qty));
-        }
-
-        void remove(int id) {
-            items.remove(id);
-        }
-
-        double total() {
-            return items.values().stream().mapToDouble(i -> i.productDTO().price() * i.quantity()).sum();
-        }
-        Map<String, Object> toMap() {
-            return Map.of(
-                "items", items.values().stream().map(i -> Map.of(
-                    "id", i.productDTO().id(),
-                    "name", i.productDTO().name(),
-                    "price", i.productDTO().price(),
-                    "quantity", i.quantity()
-                )).toList(),
-                "total", total()
-            );
-        }
-
+    private void sendJson(HttpExchange http, String response) throws IOException {
+        byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+        http.getResponseHeaders().set("Content-Type", "application/json");
+        http.sendResponseHeaders(200, bytes.length);
+        http.getResponseBody().write(bytes);
+        http.close();
     }
 
-    static final Map<Integer, ProductDTO> catalog = IntStream.rangeClosed(1, 50)
-        .boxed()
-        .collect(Collectors.toMap(
-            i -> i,
-            i -> new ProductDTO(i, "Product " + i, 10.0 + i)
-        ));
-
-
-    private static UUID getOrderId(HttpExchange http) {
-        List<String> cookies = http.getRequestHeaders().get("Cookie");
-        if (cookies != null) {
-            for (String cookie : cookies) {
-                for (HttpCookie c : HttpCookie.parse(cookie)) {
-                    if (c.getName().equals("eda-orderId")) return UUID.fromString(c.getValue());
-                }
-            }
-        }
-        UUID id = UUID.randomUUID();
-        HttpCookie newCookie = new HttpCookie("eda-orderId", id.toString());
-        http.getResponseHeaders().add("Set-Cookie", newCookie.toString());
-        return id;
-    }
-
-    private record OrderWithId(OrderDTO order, OrderId orderId) {
-    }
-
-    private OrderWithId getOrCreateOrder(HttpExchange http) {
-        UUID id = getOrderId(http);
-        OrderDTO orderDTO = ordersMap.computeIfAbsent(id, k -> new OrderDTO());
-        return new OrderWithId(orderDTO, new OrderId(id));
+    private void methodNotAllowed(HttpExchange http) throws IOException {
+        logger.warn("Received unsupported HTTP method: {}", http.getRequestMethod());
+        http.sendResponseHeaders(405, -1);
+        http.close();
     }
 
     private static Map<String, String> parseForm(String body) {
         return Arrays.stream(body.split("&"))
-            .map(pair -> pair.split("=", 2))
-            .collect(Collectors.toMap(p -> URLDecoder.decode(p[0], StandardCharsets.UTF_8),
-                p -> URLDecoder.decode(p[1], StandardCharsets.UTF_8)));
+            .map(pair -> pair.split("="))
+            .collect(Collectors.toMap(pair -> URLDecoder.decode(pair[0], StandardCharsets.UTF_8),
+                pair -> URLDecoder.decode(pair[1], StandardCharsets.UTF_8)));
     }
 
-    private static void sendJson(HttpExchange http, String json) throws IOException {
-        byte[] data = json.getBytes(StandardCharsets.UTF_8);
-        http.getResponseHeaders().set("Content-Type", "application/json");
-        http.sendResponseHeaders(200, data.length);
-        http.getResponseBody().write(data);
-        http.close();
+    static class OrderDTO {
+        private final Map<UUID, OrderItemDTO> items = new HashMap<>();
+        private final UUID orderID;
+
+        OrderDTO() {
+            this.orderID = UUID.randomUUID();
+        }
+
+        void add(UUID itemId, ProductDTO product, int quantity) {
+            items.put(itemId, new OrderItemDTO(itemId, product, quantity));
+        }
+
+        void update(UUID itemId, ProductDTO product, int quantity) {
+            if (items.containsKey(itemId)) {
+                items.put(itemId, new OrderItemDTO(itemId, product, quantity));
+            } else {
+                throw new IllegalStateException("Cannot update a non-existent item");
+            }
+        }
+
+        List<Map<String, Object>> getItemsList() {
+            return items.values().stream().map(OrderItemDTO::toMap).toList();
+        }
+
+        boolean remove(UUID itemId) {
+            return items.remove(itemId) != null;
+        }
+
+        Map<String, Object> toMap() {
+            return Map.of(
+                "orderId", orderID,
+                "items", getItemsList()
+            );
+        }
     }
 
-    private static String guessMime(Path file) {
-        String name = file.getFileName().toString();
-        if (name.endsWith(".html")) return "text/html";
-        if (name.endsWith(".js")) return "application/javascript";
-        if (name.endsWith(".css")) return "text/css";
-        if (name.endsWith(".json")) return "application/json";
-        return "application/octet-stream";
+    record OrderItemDTO(UUID itemId, ProductDTO product, int quantity) {
+        Map<String, Object> toMap() {
+            return Map.of("itemId", itemId, "product", product.toMap(), "quantity", quantity);
+        }
+    }
+
+    record ProductDTO(Long id, String name, BigDecimal price) {
+        Map<String, Object> toMap() {
+            return Map.of("id", id, "name", name, "price", price);
+        }
     }
 }

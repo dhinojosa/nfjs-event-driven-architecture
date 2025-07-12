@@ -1,8 +1,8 @@
 package com.evolutionnext.port.in;
 
 
-import com.evolutionnext.domain.aggregate.Order;
+import com.evolutionnext.application.commands.OrderCommand;
 
 public interface ForClientSubmitOrder {
-    void submit(Order order);
+    void submit(OrderCommand orderCommand);
 }
