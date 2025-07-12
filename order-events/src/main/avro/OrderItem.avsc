@@ -4,6 +4,13 @@
     "namespace": "com.evolutionnext.messaging",
     "fields": [
         {
+            "name": "orderItemId",
+            "type": {
+                "type": "string",
+                "logicalType": "uuid"
+            }
+        },
+        {
             "name": "productId",
             "type": "long"
         },
@@ -14,7 +21,8 @@
                 "name": "orderItemType",
                 "symbols": [
                     "ADD",
-                    "REMOVE"
+                    "REMOVE",
+                    "UPDATE"
                 ]
             }
         },
