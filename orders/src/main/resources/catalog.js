@@ -144,20 +144,6 @@ function addLineItem() {
     updateDropdowns();
 }
 
-// Validate and update the quantity input
-function validateQuantity(event) {
-    const input = event.target;
-    const quantity = parseInt(input.value, 10);
-
-    if (isNaN(quantity) || quantity < 1) {
-        alert("Quantity must be a positive number greater than or equal to 1.");
-        input.value = 1; // Reset to the minimum valid quantity
-    }
-
-    // Trigger price recalculation
-    updatePrice(event);
-}
-
 // Update the price for a line item and recalculate totals
 function updatePrice(event) {
     const row = event.target.closest("tr");
