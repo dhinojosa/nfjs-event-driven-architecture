@@ -1,3 +1,12 @@
+// Check if crypto.randomUUID is available, if not provide a fallback
+if (!crypto?.randomUUID) {
+    crypto.randomUUID = function () {
+        return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
+            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+        );
+    };
+}
+
 const products = [
     { id: 1, name: "Laptop", price: 1000 },
     { id: 2, name: "Headphones", price: 200 },
@@ -196,51 +205,39 @@ async function addToOrder(productId) {
 
 
 // Function to Refresh Order Information
-async function refreshOrderInfo() {
-    try {
-        const response = await fetch(`/order.json?id=${currentOrderId}`);
-        if (!response.ok) throw new Error("Failed to refresh order information.");
-        const order = await response.json();
-        updateOrderUI(order);
-    } catch (error) {
-        alert(error.message);
-    }
-}
+// async function refreshOrderInfo() {
+//     try {
+//         const response = await fetch(`/order.json?id=${currentOrderId}`);
+//         if (!response.ok) throw new Error("Failed to refresh order information.");
+//         const order = await response.json();
+//         updateOrderUI(order);
+//     } catch (error) {
+//         alert(error.message);
+//     }
+// }
 
-// Function to Update the UI with Order Data
-function updateOrderUI(order) {
-    const orderTable = document.querySelector("#order-table tbody");
-    orderTable.innerHTML = ""; // Clear current content
-    order.items.forEach(item => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${item["product"].id}</td>
-            <td>${item["product"].name}</td>
-            <td>${item.quantity}</td>
-            <td>${item["product"].price.toFixed(2)}</td>
-            <td>${(item.quantity * item["product"].price).toFixed(2)}</td>
-            <td><button onclick="deleteLineItem(${item["product"].id})">Remove</button></td>
-        `;
-        orderTable.appendChild(row);
-    });
-
+function displayOrderId() {
     // Update the header page with the orderID
     const heading = document.querySelector("h1");
     if (heading) {
-        heading.textContent = `Create Your Order: ${order.id}`;
+        heading.textContent = `Create Your Order: ${currentOrderId}`;
     } else {
         heading.textContent = `Create Your Order`;
     }
-
-    // Update the order total
-    document.getElementById("order-total").textContent = `$${order.total.toFixed(2)}`;
 }
+
+function createUUID() {
+    console.log("Creating a UUID");
+    currentOrderId = crypto.randomUUID();
+}
+
 
 // Wrapper function to call both loadCatalog and loadOrderId
 function initializePage() {
     console.log("Initializing Page");
+    createUUID();
+    displayOrderId();
 
-    refreshOrderInfo();
 }
 
 // Assign the wrapper function to window.onload
