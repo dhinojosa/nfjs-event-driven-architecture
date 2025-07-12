@@ -32,6 +32,94 @@ function generateProductDropdown(selectedProductId = null) {
     `;
 }
 
+// Handle changes to a product or quantity in a line item
+function handleLineItemChange(event) {
+    console.log("Event target: ", event.target);
+    const row = event.target.closest("tr");
+
+    if (!row) {
+        console.error("Parent row (<tr>) not found. Ensure that the event is triggered from within a table row.");
+        return;
+    }
+
+    const uuid = row.querySelector(".line-item-uuid").value;
+    const submitted = row.querySelector(".line-item-submitted").value === "true";
+    const productSelect = row.querySelector(".product-select");
+    const selectedProductId = productSelect.value;
+    const quantityInput = row.querySelector(".quantity-input").value;
+    const priceCell = row.querySelector(".price-cell");
+
+    const productPrice = parseFloat(productSelect.selectedOptions[0]?.dataset.price || 0);
+    const quantity = parseInt(quantityInput, 10) || 1;
+    const lineItemPrice = productPrice * quantity;
+
+    // Update the price shown in the row
+    priceCell.textContent = `$${lineItemPrice.toFixed(2)}`;
+    updateTotal();
+
+    // Determine the appropriate action
+    if (submitted) {
+        updateLineItem(uuid, selectedProductId, quantity, lineItemPrice);
+    } else {
+        addNewLineItem(uuid, selectedProductId, quantity, lineItemPrice, row);
+    }
+}
+
+
+
+// Send `POST` request to add a new line item to the backend
+async function addNewLineItem(uuid, productId, quantity, price, row) {
+    try {
+        const response = await fetch(`/order/${currentOrderId}/items`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                id: uuid,
+                productId,
+                quantity,
+                price,
+            }),
+        });
+
+        if (response.ok) {
+            // Successfully submitted; mark this line item as submitted
+            row.querySelector(".line-item-submitted").value = "true";
+            console.log(`Line item ${uuid} successfully added.`);
+        } else {
+            throw new Error(`Failed to add line item ${uuid}`);
+        }
+    } catch (error) {
+        console.error(error.message);
+        alert("Error adding new line item. Please try again.");
+    }
+}
+
+
+// Send a ` PATCH ` request to update an existing line item
+async function updateLineItem(uuid, productId, quantity, price) {
+    try {
+        const response = await fetch(`/order/${currentOrderId}/items/${uuid}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                productId,
+                quantity,
+                price,
+            }),
+        });
+
+        if (response.ok) {
+            console.log(`Line item ${uuid} successfully updated.`);
+        } else {
+            throw new Error(`Failed to update line item ${uuid}`);
+        }
+    } catch (error) {
+        console.error(error.message);
+        alert("Error updating line item. Please try again.");
+    }
+}
+
+
 // Add a new line item to the table
 function addLineItem() {
     const tableBody = document.querySelector("#order-table tbody");
@@ -43,14 +131,15 @@ function addLineItem() {
     newRow.innerHTML = `
         <td>${generateProductDropdown()}</td>
         <td>
-            <input type="number" value="1" min="1" class="quantity-input" onchange="validateQuantity(event)">
+            <input type="number" value="1" min="1" class="quantity-input" onchange="handleLineItemChange(event)"
+>
         </td>
         <td class="price-cell">$0.00</td>
         <td>
-            <button onclick="deleteLineItem(event)">Remove</button>
+            <button onclick="removeLineItem(event)">Remove</button>
             <input type="hidden" class="line-item-uuid" value="${lineItemUUID}">
+            <input type="hidden" class="line-item-submitted" value="false">
         </td>
-
     `;
     tableBody.appendChild(newRow);
     updateDropdowns();
@@ -144,12 +233,44 @@ function submitOrder() {
         .catch((error) => alert(error.message));
 }
 
-// Delete a line item from the table
-function deleteLineItem(event) {
+// Handle the removal of a line item
+function removeLineItem(event) {
     const row = event.target.closest("tr");
-    row.remove();
-    updateTotal();
-    updateDropdowns();
+    const uuid = row.querySelector(".line-item-uuid").value;
+    const submitted = row.querySelector(".line-item-submitted").value === "true";
+
+    if (submitted) {
+        // If the item is submitted, send a DELETE request
+        deleteLineItem(uuid).then(() => {
+            row.remove();
+            updateTotal();
+            updateDropdowns();
+        });
+    } else {
+        // If not submitted, simply remove the row
+        row.remove();
+        updateTotal();
+        updateDropdowns();
+    }
+}
+
+
+// Send `DELETE` request to remove an existing line item
+async function deleteLineItem(uuid) {
+    try {
+        const response = await fetch(`/order/${currentOrderId}/items/${uuid}`, {
+            method: "DELETE",
+        });
+
+        if (response.ok) {
+            console.log(`Line item ${uuid} successfully deleted.`);
+        } else {
+            throw new Error(`Failed to delete line item ${uuid}`);
+        }
+    } catch (error) {
+        console.error(error.message);
+        alert("Error deleting line item. Please try again.");
+    }
 }
 
 // Handle product changes to refresh the dropdowns and update prices
@@ -163,6 +284,7 @@ function updateDropdowns() {
     const rows = document.querySelectorAll("#order-table tbody tr");
     rows.forEach((row) => {
         const productSelect = row.querySelector(".product-select");
+        productSelect.setAttribute("onchange", "handleLineItemChange(event)");
         const selectedProductId = productSelect.value;
         productSelect.innerHTML = generateProductDropdown(selectedProductId);
     });

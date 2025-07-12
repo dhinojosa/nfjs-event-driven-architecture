@@ -1,10 +1,6 @@
 package com.evolutionnext.infrastructure.in.order;
 
-import com.evolutionnext.application.commands.AddOrderItem;
-import com.evolutionnext.application.commands.ChangeOrderItem;
-import com.evolutionnext.application.commands.CreateOrder;
-import com.evolutionnext.application.commands.DeleteOrder;
-import com.evolutionnext.application.commands.SubmitOrder;
+import com.evolutionnext.application.commands.*;
 import com.evolutionnext.port.in.ForClientSubmitOrder;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -103,10 +99,8 @@ public class OrdersServer {
                 String[] parts = path.split("/");
                 UUID orderId = UUID.fromString(parts[2]);
                 UUID orderItemId = UUID.fromString(parts[4]);
-
                 String body = new String(http.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-                Map<String, String> data = parseForm(body);
-
+                Map<String, String> data = objectMapper.readValue(body, new TypeReference<>() {});
                 long productId = Long.parseLong(data.get("productId"));
                 int quantity = Integer.parseInt(data.get("quantity"));
                 BigDecimal price = new BigDecimal(data.get("price"));
@@ -118,7 +112,10 @@ public class OrdersServer {
                 String[] parts = path.split("/");
                 UUID orderId = UUID.fromString(parts[2]);
                 String body = new String(http.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-                Map<String, String> data = parseForm(body);
+                logger.info("Received body: {}", body);
+                Map<String, String> data = objectMapper.readValue(body, new TypeReference<>() {
+                });
+                logger.info("Parsed form data: {}", data);
                 UUID orderItemId = UUID.randomUUID();
                 long productId = Long.parseLong(data.get("productId"));
                 int quantity = Integer.parseInt(data.get("quantity"));
@@ -127,6 +124,13 @@ public class OrdersServer {
                     productId, quantity, price, Instant.now()));
                 String response = objectMapper.writeValueAsString(Map.of("orderItemId", orderItemId));
                 sendJson(http, response);
+            } else if (path.matches("/order/([^/]+)/items/([^/]+)") && "DELETE".equalsIgnoreCase(http.getRequestMethod())) {
+                logger.info("Received DELETE request to retrieve order");
+                String[] parts = path.split("/");
+                UUID orderId = UUID.fromString(parts[2]);
+                UUID orderItemId = UUID.fromString(parts[4]);
+                forClientSubmitOrder.submit(new DeleteOrderItem(orderId, orderItemId, Instant.now()));
+                http.sendResponseHeaders(204, -1);
             } else if (path.matches("/order/([^/]+)/items") && "GET".equalsIgnoreCase(http.getRequestMethod())) {
                 logger.info("Received GET request to retrieve items in order");
                 methodNotAllowed(http);
@@ -174,13 +178,6 @@ public class OrdersServer {
         logger.warn("Received unsupported HTTP method: {}", http.getRequestMethod());
         http.sendResponseHeaders(405, -1);
         http.close();
-    }
-
-    private static Map<String, String> parseForm(String body) {
-        return Arrays.stream(body.split("&"))
-            .map(pair -> pair.split("=", 2))
-            .collect(Collectors.toMap(p -> URLDecoder.decode(p[0], StandardCharsets.UTF_8),
-                p -> URLDecoder.decode(p[1], StandardCharsets.UTF_8)));
     }
 
     private static String guessMime(Path file) {
