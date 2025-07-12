@@ -15,7 +15,6 @@ public class Order {
     private final CustomerId customerId;
     private OrderStatus status;
     private final List<OrderItem> items;
-    private final List<OrderEvent> events = new ArrayList<>();
     private final Logger logger = LoggerFactory.getLogger(Order.class);
     protected Order(OrderId orderId, CustomerId customerId, String state) {
         this.state = state;
@@ -23,7 +22,6 @@ public class Order {
         this.customerId = customerId;
         this.status = OrderStatus.CREATED;
         this.items = new ArrayList<>();
-        this.events.add(new OrderCreated(this));
     }
 
     public void placeOrder() {
@@ -32,7 +30,6 @@ public class Order {
         }
         logger.info("Placing order: {}", this);
         this.status = OrderStatus.PLACED;
-        this.events.add(new OrderPlaced(this));
     }
 
     public void addOrderItem(OrderItem orderItem) {
@@ -46,7 +43,6 @@ public class Order {
     public void cancelOrder() {
         logger.info("Canceling order: {}", this);
         this.status = OrderStatus.CANCELLED;
-        this.events.add(new OrderCancelled(this, "Order cancelled by customer"));
     }
 
     public static Order create(OrderId orderId, CustomerId customerId, String state){
@@ -90,15 +86,8 @@ public class Order {
         return Objects.hash(orderId, status, items);
     }
 
-    public List<OrderEvent> events() {
-        return Collections.unmodifiableList(events);
-    }
-
     public List<OrderItem> getOrderItems() {
         return Collections.unmodifiableList(items);
     }
 
-    public void clearEvents() {
-        events.clear();
-    }
 }

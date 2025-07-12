@@ -1,7 +1,4 @@
 package com.evolutionnext.domain.events;
 
-
-import com.evolutionnext.domain.aggregate.Order;
-
-public record OrderCreated(Order order) implements OrderEvent {
+public record OrderCreated(java.util.UUID uuid, java.time.Instant now) implements OrderEvent {
 }

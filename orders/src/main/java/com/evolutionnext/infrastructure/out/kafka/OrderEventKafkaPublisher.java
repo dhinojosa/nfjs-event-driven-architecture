@@ -40,36 +40,6 @@ public class OrderEventKafkaPublisher implements OrderEventPublisher {
 
     @Override
     public void publish(OrderEvent orderEvent) {
-        switch (orderEvent) {
-            case OrderCreated orderCreated -> {
-                OrderEventMessage event = createOrderCreatedMessage(orderCreated);
-                producer.send(new ProducerRecord<>(TOPIC, orderCreated.order().getOrderId().toString(), event));
-            }
-            case OrderPlaced orderPlaced -> {
-                OrderEventMessage event = createOrderPlacedMessage(orderPlaced);
-                producer.send(new ProducerRecord<>(TOPIC, orderPlaced.order().getOrderId().toString(), event));
-            }
-            case OrderCancelled orderCancelled -> {
-                OrderEventMessage event = createOrderCancelledMessage(orderCancelled);
-                producer.send(new ProducerRecord<>(TOPIC, orderCancelled.order().getOrderId().toString(), event));
-            }
-        }
-    }
-
-    private OrderEventMessage createOrderCancelledMessage(OrderCancelled orderCancelled) {
-        return new OrderEventMessage(orderCancelled.order().getOrderId().toString(),
-            Instant.now(),
-            EventType.ORDER_CANCELLED, new OrderCancelledMessage(orderCancelled.reason()));
-    }
-
-    private OrderEventMessage createOrderPlacedMessage(OrderPlaced orderPlaced) {
-        return new OrderEventMessage(orderPlaced.order().getOrderId().toString(),
-            Instant.now(),
-            EventType.ORDER_PLACED, new OrderPlacedMessage());
-    }
-
-    private OrderEventMessage createOrderCreatedMessage(OrderCreated orderCreated) {
-        return new OrderEventMessage(orderCreated.order().getOrderId().id().toString(),
-            Instant.now(), EventType.ORDER_CREATED, new OrderCreatedMessage());
+        logger.info("Publishing OrderEvent {}", orderEvent);
     }
 }
