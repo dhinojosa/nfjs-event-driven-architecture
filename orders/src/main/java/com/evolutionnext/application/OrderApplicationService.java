@@ -29,7 +29,7 @@ public class OrderApplicationService implements ForClientSubmitOrder {
             ) -> orderEventPublisher.publish(new OrderItemAdded(uuid, orderItemId, productId, quantity, price, now));
             case CreateOrder(UUID uuid, java.time.Instant now) ->
                 orderEventPublisher.publish(new OrderCreated(uuid, now));
-            case DeleteOrder(UUID uuid) -> orderEventPublisher.publish(new OrderDeleted(uuid));
+            case DeleteOrder(UUID uuid, java.time.Instant now) -> orderEventPublisher.publish(new OrderDeleted(uuid, now));
             case DeleteOrderItem(UUID orderId, UUID orderItemId, java.time.Instant now) ->
                 orderEventPublisher.publish(new OrderItemDeleted(orderId, orderItemId, now));
             case SubmitOrder(UUID uuid, java.time.Instant now) ->

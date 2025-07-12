@@ -18,11 +18,12 @@
             "name": "orderItemType",
             "type": {
                 "type": "enum",
-                "name": "orderItemType",
+                "name": "OrderItemType",
                 "symbols": [
                     "ADD",
                     "REMOVE",
-                    "UPDATE"
+                    "UPDATE",
+                    "DELETE"
                 ]
             }
         },
@@ -32,7 +33,7 @@
         },
         {
             "name": "price",
-            "type": "int",
+            "type": "double",
             "doc": "This is tough, the price can change in the middle of shopping, but this is a one-day workshop. Hand waving"
         }
     ]

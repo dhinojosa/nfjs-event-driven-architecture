@@ -136,7 +136,7 @@ public class OrdersServer {
                 logger.info("Received DELETE request to cancel or delete the order");
                 String[] parts = path.split("/");
                 UUID orderId = UUID.fromString(parts[2]);
-                forClientSubmitOrder.submit(new DeleteOrder(orderId));
+                forClientSubmitOrder.submit(new DeleteOrder(orderId, Instant.now()));
                 logger.info("Order {} successfully deleted or canceled", orderId);
                 http.sendResponseHeaders(204, -1);
             } else if ("POST".equalsIgnoreCase(http.getRequestMethod())) {

@@ -22,6 +22,7 @@
                 "symbols": [
                     "ORDER_CREATED",
                     "ORDER_PLACED",
+                    "ORDER_ITEM",
                     "ORDER_CANCELLED"
                 ]
             }

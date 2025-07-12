@@ -1,9 +1,5 @@
 package com.evolutionnext.domain.aggregate;
 
-import com.evolutionnext.domain.events.OrderCancelled;
-import com.evolutionnext.domain.events.OrderCreated;
-import com.evolutionnext.domain.events.OrderEvent;
-import com.evolutionnext.domain.events.OrderPlaced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
