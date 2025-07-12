@@ -1,11 +1,4 @@
-// Check if crypto.randomUUID is available, if not provide a fallback
-if (!crypto?.randomUUID) {
-    crypto.randomUUID = function () {
-        return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
-            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-        );
-    };
-}
+
 
 const products = [
     { id: 1, name: "Laptop", price: 1000 },
@@ -131,8 +124,8 @@ function submitOrder() {
     // Submit the order to the backend
     fetch("/order/submit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: orderItems })
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({orderId: currentOrderId})
     })
         .then((response) => {
             if (response.ok) {
@@ -228,16 +221,44 @@ function displayOrderId() {
 
 function createUUID() {
     console.log("Creating a UUID");
+    // Check if crypto.randomUUID is available, if not provide a fallback
+    if (!crypto?.randomUUID) {
+        crypto.randomUUID = function () {
+            return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
+                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+            );
+        };
+    }
     currentOrderId = crypto.randomUUID();
 }
 
+
+function createOrder(currentOrderId) {
+    fetch("/order", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({orderId: currentOrderId})
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Failed to create order");
+            }
+            console.log("Order created successfully with ID:", currentOrderId);
+        })
+        .catch(error => {
+            console.error("Error creating order:", error);
+            alert("Failed to create order. Please try again.");
+        });
+}
 
 // Wrapper function to call both loadCatalog and loadOrderId
 function initializePage() {
     console.log("Initializing Page");
     createUUID();
     displayOrderId();
-
+    createOrder(currentOrderId);
 }
 
 // Assign the wrapper function to window.onload

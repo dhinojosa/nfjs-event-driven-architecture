@@ -4,7 +4,9 @@ import com.evolutionnext.application.commands.AddOrderItem;
 import com.evolutionnext.application.commands.ChangeOrderItem;
 import com.evolutionnext.application.commands.CreateOrder;
 import com.evolutionnext.application.commands.DeleteOrder;
+import com.evolutionnext.application.commands.SubmitOrder;
 import com.evolutionnext.port.in.ForClientSubmitOrder;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -87,7 +89,16 @@ public class OrdersServer {
         server.createContext("/order", http -> {
             String path = http.getRequestURI().getPath();
             logger.info("Received /order context to path: {}", path);
-            if (path.matches("/order/([^/]+)/items/([^/]+)") && "PATCH".equalsIgnoreCase(http.getRequestMethod())) {
+
+            if (path.equals("/order/submit") && "POST".equalsIgnoreCase(http.getRequestMethod())) {
+                logger.info("Received POST request to submit order");
+                String body = new String(http.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                Map<String, String> jsonMap = objectMapper.readValue(body, new TypeReference<>() {
+                });
+                UUID orderId = UUID.fromString(jsonMap.get("orderId"));
+                forClientSubmitOrder.submit(new SubmitOrder(orderId, Instant.now()));
+                http.sendResponseHeaders(204, -1);
+            } else if (path.matches("/order/([^/]+)/items/([^/]+)") && "PATCH".equalsIgnoreCase(http.getRequestMethod())) {
                 logger.info("Received PATCH request to update item in order");
                 String[] parts = path.split("/");
                 UUID orderId = UUID.fromString(parts[2]);
@@ -128,10 +139,20 @@ public class OrdersServer {
                 http.sendResponseHeaders(204, -1);
             } else if ("POST".equalsIgnoreCase(http.getRequestMethod())) {
                 logger.info("Received POST request to create a new order");
-                UUID orderId = UUID.randomUUID();
-                String json = objectMapper.writeValueAsString(Map.of("orderId", orderId));
-                forClientSubmitOrder.submit(new CreateOrder(orderId, Instant.now()));
-                sendJson(http, json);
+                try {
+                    String body = new String(http.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                    logger.info("Received body: {}", body);
+                    Map<String, String> jsonMap = objectMapper.readValue(body, new TypeReference<>() {});
+                    logger.info("Parsed JSON: {}", jsonMap);
+                    UUID orderId = UUID.fromString(jsonMap.get("orderId"));
+                    forClientSubmitOrder.submit(new CreateOrder(orderId, Instant.now()));
+                    http.sendResponseHeaders(201, -1);
+                    http.close();
+                } catch (Exception e) {
+                    logger.error("Error processing order creation request", e);
+                    http.sendResponseHeaders(400, -1);
+                    http.close();
+                }
             } else {
                 methodNotAllowed(http);
             }
