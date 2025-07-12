@@ -131,8 +131,7 @@ function addLineItem() {
     newRow.innerHTML = `
         <td>${generateProductDropdown()}</td>
         <td>
-            <input type="number" value="1" min="1" class="quantity-input" onchange="handleLineItemChange(event)"
->
+            <input type="number" value="1" min="1" class="quantity-input" onchange="handleLineItemChange(event)">
         </td>
         <td class="price-cell">$0.00</td>
         <td>
@@ -254,7 +253,6 @@ function removeLineItem(event) {
     }
 }
 
-
 // Send `DELETE` request to remove an existing line item
 async function deleteLineItem(uuid) {
     try {
@@ -295,49 +293,6 @@ document.addEventListener("DOMContentLoaded", () => {
     addLineItem(); // Add the first row by default
 });
 
-// Function to Add Item to Order
-async function addToOrder(productId) {
-    const quantityInput = document.getElementById(`qty-${productId}`);
-    const quantity = parseInt(quantityInput.value, 10);
-
-    if (quantity <= 0) {
-        alert("Quantity must be at least 1.");
-        return;
-    }
-
-    try {
-        const response = await fetch("/order/add", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: new URLSearchParams({
-                id: productId,
-                quantity: quantity
-            })
-        });
-
-        if (!response.ok) throw new Error("Failed to add item to order.");
-        alert("Item added to order!");
-        refreshOrderInfo(); // Optionally refresh the UI
-    } catch (error) {
-        alert(error.message);
-    }
-}
-
-
-// Function to Refresh Order Information
-// async function refreshOrderInfo() {
-//     try {
-//         const response = await fetch(`/order.json?id=${currentOrderId}`);
-//         if (!response.ok) throw new Error("Failed to refresh order information.");
-//         const order = await response.json();
-//         updateOrderUI(order);
-//     } catch (error) {
-//         alert(error.message);
-//     }
-// }
-
 function displayOrderId() {
     // Update the header page with the orderID
     const heading = document.querySelector("h1");
@@ -360,7 +315,6 @@ function createUUID() {
     }
     currentOrderId = crypto.randomUUID();
 }
-
 
 function createOrder(currentOrderId) {
     fetch("/order", {

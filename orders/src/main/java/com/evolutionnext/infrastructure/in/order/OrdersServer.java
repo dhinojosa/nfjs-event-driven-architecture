@@ -6,21 +6,19 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.net.URLConnection;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Map;
+import java.util.UUID;
 
 public class OrdersServer {
 
@@ -116,7 +114,7 @@ public class OrdersServer {
                 Map<String, String> data = objectMapper.readValue(body, new TypeReference<>() {
                 });
                 logger.info("Parsed form data: {}", data);
-                UUID orderItemId = UUID.randomUUID();
+                UUID orderItemId = UUID.fromString(data.get("id"));
                 long productId = Long.parseLong(data.get("productId"));
                 int quantity = Integer.parseInt(data.get("quantity"));
                 BigDecimal price = new BigDecimal(data.get("price"));
