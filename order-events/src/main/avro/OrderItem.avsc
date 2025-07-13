@@ -22,8 +22,7 @@
                 "symbols": [
                     "ADD",
                     "REMOVE",
-                    "UPDATE",
-                    "DELETE"
+                    "UPDATE"
                 ]
             }
         },

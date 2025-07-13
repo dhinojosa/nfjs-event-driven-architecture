@@ -70,7 +70,7 @@ public class OrderEventKafkaPublisher implements OrderEventPublisher {
             case OrderItemDeleted(java.util.UUID uuid, java.util.UUID orderItemId, java.time.Instant now) -> {
                 OrderEventMessage message =
                     new OrderEventMessage(uuid.toString(), now, EventType.ORDER_ITEM,
-                        new OrderItemMessage(orderItemId, 0L, OrderItemType.DELETE, 0, 0.0));
+                        new OrderItemMessage(orderItemId, 0L, OrderItemType.REMOVE, 0, 0.0));
                 producer.send(new ProducerRecord<>(TOPIC, null, now.toEpochMilli(), uuid.toString(), message));
             }
             case OrderPlaced(java.util.UUID uuid, java.time.Instant now) -> {
