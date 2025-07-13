@@ -85,83 +85,112 @@ public class OrdersServer {
             logger.info("Received /order context to path: {}", path);
 
             if (path.equals("/order/submit") && "POST".equalsIgnoreCase(http.getRequestMethod())) {
-                logger.info("Received POST request to submit order");
-                String body = new String(http.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-                Map<String, String> jsonMap = objectMapper.readValue(body, new TypeReference<>() {
-                });
-                UUID orderId = UUID.fromString(jsonMap.get("orderId"));
-                forClientSubmitOrder.submit(new SubmitOrder(orderId, Instant.now()));
-                http.sendResponseHeaders(204, -1);
+                submitOrder(http);
             } else if (path.matches("/order/([^/]+)/items/([^/]+)") && "PATCH".equalsIgnoreCase(http.getRequestMethod())) {
-                logger.info("Received PATCH request to update item in order");
-                String[] parts = path.split("/");
-                UUID orderId = UUID.fromString(parts[2]);
-                UUID orderItemId = UUID.fromString(parts[4]);
-                String body = new String(http.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-                Map<String, String> data = objectMapper.readValue(body, new TypeReference<>() {});
-                long productId = Long.parseLong(data.get("productId"));
-                int quantity = Integer.parseInt(data.get("quantity"));
-                BigDecimal price = new BigDecimal(data.get("price"));
-                forClientSubmitOrder.submit(new ChangeOrderItem(orderId, orderItemId,
-                    productId, quantity, price, Instant.now()));
-                http.sendResponseHeaders(204, -1); // No content on success
+                patchOrderItem(http, path);
             } else if (path.matches("/order/([^/]+)/items") && "POST".equalsIgnoreCase(http.getRequestMethod())) {
-                logger.info("Received POST request to add item to order");
-                String[] parts = path.split("/");
-                UUID orderId = UUID.fromString(parts[2]);
-                String body = new String(http.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-                logger.info("Received body: {}", body);
-                Map<String, String> data = objectMapper.readValue(body, new TypeReference<>() {
-                });
-                logger.info("Parsed form data: {}", data);
-                UUID orderItemId = UUID.fromString(data.get("id"));
-                long productId = Long.parseLong(data.get("productId"));
-                int quantity = Integer.parseInt(data.get("quantity"));
-                BigDecimal price = new BigDecimal(data.get("price"));
-                forClientSubmitOrder.submit(new AddOrderItem(orderId, orderItemId,
-                    productId, quantity, price, Instant.now()));
-                String response = objectMapper.writeValueAsString(Map.of("orderItemId", orderItemId));
-                sendJson(http, response);
+                createOrderItem(http, path);
             } else if (path.matches("/order/([^/]+)/items/([^/]+)") && "DELETE".equalsIgnoreCase(http.getRequestMethod())) {
-                logger.info("Received DELETE request to retrieve order");
-                String[] parts = path.split("/");
-                UUID orderId = UUID.fromString(parts[2]);
-                UUID orderItemId = UUID.fromString(parts[4]);
-                forClientSubmitOrder.submit(new DeleteOrderItem(orderId, orderItemId, Instant.now()));
-                http.sendResponseHeaders(204, -1);
+                deleteOrderItem(http, path);
             } else if (path.matches("/order/([^/]+)/items") && "GET".equalsIgnoreCase(http.getRequestMethod())) {
-                logger.info("Received GET request to retrieve items in order");
-                methodNotAllowed(http);
+                getOrderItems(http);
             } else if (path.matches("/order/([^/]+)") && "DELETE".equalsIgnoreCase(http.getRequestMethod())) {
-                logger.info("Received DELETE request to cancel or delete the order");
-                String[] parts = path.split("/");
-                UUID orderId = UUID.fromString(parts[2]);
-                forClientSubmitOrder.submit(new DeleteOrder(orderId, Instant.now()));
-                logger.info("Order {} successfully deleted or canceled", orderId);
-                http.sendResponseHeaders(204, -1);
+                deleteOrder(http, path);
             } else if ("POST".equalsIgnoreCase(http.getRequestMethod())) {
-                logger.info("Received POST request to create a new order");
-                try {
-                    String body = new String(http.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-                    logger.info("Received body: {}", body);
-                    Map<String, String> jsonMap = objectMapper.readValue(body, new TypeReference<>() {});
-                    logger.info("Parsed JSON: {}", jsonMap);
-                    UUID orderId = UUID.fromString(jsonMap.get("orderId"));
-                    forClientSubmitOrder.submit(new CreateOrder(orderId, Instant.now()));
-                    http.sendResponseHeaders(201, -1);
-                    http.close();
-                } catch (Exception e) {
-                    logger.error("Error processing order creation request", e);
-                    http.sendResponseHeaders(400, -1);
-                    http.close();
-                }
+                createOrder(http);
             } else {
                 methodNotAllowed(http);
             }
         });
+
         server.setExecutor(null); // Use the default executor
         server.start();
         logger.info("Orders server running at http://localhost:{}/", addr.getPort());
+    }
+
+    private void submitOrder(HttpExchange http) throws IOException {
+        logger.info("Received POST request to submit order");
+        String body = new String(http.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        Map<String, String> jsonMap = objectMapper.readValue(body, new TypeReference<>() {
+        });
+        UUID orderId = UUID.fromString(jsonMap.get("orderId"));
+        forClientSubmitOrder.submit(new SubmitOrder(orderId, Instant.now()));
+        http.sendResponseHeaders(204, -1);
+    }
+
+    private void createOrder(HttpExchange http) throws IOException {
+        logger.info("Received POST request to create a new order");
+        try {
+            String body = new String(http.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            logger.info("Received body: {}", body);
+            Map<String, String> jsonMap = objectMapper.readValue(body, new TypeReference<>() {});
+            logger.info("Parsed JSON: {}", jsonMap);
+            UUID orderId = UUID.fromString(jsonMap.get("orderId"));
+            forClientSubmitOrder.submit(new CreateOrder(orderId, Instant.now()));
+            http.sendResponseHeaders(201, -1);
+            http.close();
+        } catch (Exception e) {
+            logger.error("Error processing order creation request", e);
+            http.sendResponseHeaders(400, -1);
+            http.close();
+        }
+    }
+
+    private void deleteOrder(HttpExchange http, String path) throws IOException {
+        logger.info("Received DELETE request to cancel or delete the order");
+        String[] parts = path.split("/");
+        UUID orderId = UUID.fromString(parts[2]);
+        forClientSubmitOrder.submit(new DeleteOrder(orderId, Instant.now()));
+        logger.info("Order {} successfully deleted or canceled", orderId);
+        http.sendResponseHeaders(204, -1);
+    }
+
+    private void getOrderItems(HttpExchange http) throws IOException {
+        logger.info("Received GET request to retrieve items in order");
+        methodNotAllowed(http);
+    }
+
+    private void deleteOrderItem(HttpExchange http, String path) throws IOException {
+        logger.info("Received DELETE request to retrieve order");
+        String[] parts = path.split("/");
+        UUID orderId = UUID.fromString(parts[2]);
+        UUID orderItemId = UUID.fromString(parts[4]);
+        forClientSubmitOrder.submit(new DeleteOrderItem(orderId, orderItemId, Instant.now()));
+        http.sendResponseHeaders(204, -1);
+    }
+
+    private void createOrderItem(HttpExchange http, String path) throws IOException {
+        logger.info("Received POST request to add item to order");
+        String[] parts = path.split("/");
+        UUID orderId = UUID.fromString(parts[2]);
+        String body = new String(http.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        logger.info("Received body: {}", body);
+        Map<String, String> data = objectMapper.readValue(body, new TypeReference<>() {
+        });
+        logger.info("Parsed form data: {}", data);
+        UUID orderItemId = UUID.fromString(data.get("id"));
+        long productId = Long.parseLong(data.get("productId"));
+        int quantity = Integer.parseInt(data.get("quantity"));
+        BigDecimal price = new BigDecimal(data.get("price"));
+        forClientSubmitOrder.submit(new AddOrderItem(orderId, orderItemId,
+            productId, quantity, price, Instant.now()));
+        String response = objectMapper.writeValueAsString(Map.of("orderItemId", orderItemId));
+        sendJson(http, response);
+    }
+
+    private void patchOrderItem(HttpExchange http, String path) throws IOException {
+        logger.info("Received PATCH request to update item in order");
+        String[] parts = path.split("/");
+        UUID orderId = UUID.fromString(parts[2]);
+        UUID orderItemId = UUID.fromString(parts[4]);
+        String body = new String(http.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        Map<String, String> data = objectMapper.readValue(body, new TypeReference<>() {});
+        long productId = Long.parseLong(data.get("productId"));
+        int quantity = Integer.parseInt(data.get("quantity"));
+        BigDecimal price = new BigDecimal(data.get("price"));
+        forClientSubmitOrder.submit(new ChangeOrderItem(orderId, orderItemId,
+            productId, quantity, price, Instant.now()));
+        http.sendResponseHeaders(204, -1); // No content on success
     }
 
     private void sendJson(HttpExchange http, String response) throws IOException {

@@ -3,6 +3,7 @@ package com.evolutionnext.infrastructure.out.kafka;
 import com.evolutionnext.domain.events.*;
 import com.evolutionnext.messaging.*;
 import com.evolutionnext.port.out.OrderEventPublisher;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -27,8 +28,9 @@ public class OrderEventKafkaPublisher implements OrderEventPublisher {
         final Properties properties;
         properties = new Properties();
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
+        properties.put("schema.registry.url", "http://localhost:8081");
         properties.put(ProducerConfig.ACKS_CONFIG, "all");
         return properties;
     }
@@ -39,7 +41,7 @@ public class OrderEventKafkaPublisher implements OrderEventPublisher {
         switch (orderEvent) {
             case OrderCreated(java.util.UUID uuid, java.time.Instant now) -> {
                 OrderEventMessage message =
-                    new OrderEventMessage(uuid.toString(), now, EventType.ORDER_PLACED, new OrderCreatedMessage());
+                    new OrderEventMessage(uuid.toString(), now, EventType.ORDER_CREATED, new OrderCreatedMessage());
                 producer.send(new ProducerRecord<>(TOPIC, null, now.toEpochMilli(), uuid.toString(), message));
             }
             case OrderItemAdded(
