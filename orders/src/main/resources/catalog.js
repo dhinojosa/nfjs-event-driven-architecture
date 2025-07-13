@@ -1,5 +1,3 @@
-
-
 const products = [
     { id: 1, name: "Laptop", price: 1000 },
     { id: 2, name: "Headphones", price: 200 },
@@ -104,6 +102,9 @@ async function addNewLineItem(uuid, productId, quantity, price, row) {
 // Send a ` PATCH ` request to update an existing line item
 async function updateLineItem(uuid, productId, quantity, price) {
     try {
+        // Calculate subtotal (quantity * price)
+        const subtotal = quantity * price;
+
         const response = await fetch(`/order/${currentOrderId}/items/${uuid}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -111,11 +112,12 @@ async function updateLineItem(uuid, productId, quantity, price) {
                 productId,
                 quantity,
                 price,
+                subtotal, // Include the subtotal in the request body if needed
             }),
         });
 
         if (response.ok) {
-            console.log(`Line item ${uuid} successfully updated.`);
+            console.log(`Line item ${uuid} successfully updated with a subtotal of $${subtotal.toFixed(2)}.`);
         } else {
             throw new Error(`Failed to update line item ${uuid}`);
         }
@@ -315,4 +317,3 @@ function initializePage() {
 
 // Assign the wrapper function to window.onload
 window.onload = initializePage;
-
