@@ -30,7 +30,6 @@ function generateProductDropdown(selectedProductId = null) {
     `;
 }
 
-// Handle changes to a product or quantity in a line item
 function handleLineItemChange(event) {
     console.log("Event target: ", event.target);
     const row = event.target.closest("tr");
@@ -52,23 +51,36 @@ function handleLineItemChange(event) {
     const submitted = row.querySelector(".line-item-submitted").value === "true";
     const quantityInput = row.querySelector(".quantity-input").value;
     const priceCell = row.querySelector(".price-cell");
+    const subtotalCell = row.querySelector(".subtotal-cell");
 
+    // Get product price (fixed unit price) and quantity
     const productPrice = parseFloat(productSelect.selectedOptions[0]?.dataset.price || 0);
     const quantity = parseInt(quantityInput, 10) || 1;
-    const lineItemPrice = productPrice * quantity;
 
-    // Update the price shown in the row
-    priceCell.textContent = `$${lineItemPrice.toFixed(2)}`;
+    // --- FIX: Update Price column with the fixed unit price ---
+    priceCell.textContent = `$${productPrice.toFixed(2)}`;
+
+    // Update Subtotal column with the calculated value
+    const lineItemSubtotal = productPrice * quantity;
+    subtotalCell.textContent = `$${lineItemSubtotal.toFixed(2)}`;
+
+    // Log debug information
+    console.log("Fixed Product Price:", productPrice);
+    console.log("Quantity:", quantity);
+    console.log("Calculated Subtotal:", lineItemSubtotal);
+
+    // Update the total order cost
     updateTotal();
 
-    // Determine the appropriate action
+    // Determine the appropriate action for the backend
     if (submitted) {
-        updateLineItem(uuid, selectedProductId, quantity, lineItemPrice);
+        // Update an already submitted line item
+        updateLineItem(uuid, selectedProductId, quantity, productPrice);
     } else {
-        addNewLineItem(uuid, selectedProductId, quantity, lineItemPrice, row);
+        // Add a new line item
+        addNewLineItem(uuid, selectedProductId, quantity, productPrice, row);
     }
 }
-
 
 
 // Send `POST` request to add a new line item to the backend
@@ -99,12 +111,13 @@ async function addNewLineItem(uuid, productId, quantity, price, row) {
 }
 
 
-// Send a ` PATCH ` request to update an existing line item
 async function updateLineItem(uuid, productId, quantity, price) {
+    console.log("Updating line item to backend with uuid:{}, productID:{}, quantity:{}, and price{}", uuid, productId, quantity, price);
     try {
-        // Calculate subtotal (quantity * price)
+        // Calculate the new subtotal for the line item
         const subtotal = quantity * price;
 
+        // Update the line item on the server
         const response = await fetch(`/order/${currentOrderId}/items/${uuid}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -112,12 +125,21 @@ async function updateLineItem(uuid, productId, quantity, price) {
                 productId,
                 quantity,
                 price,
-                subtotal, // Include the subtotal in the request body if needed
             }),
         });
 
         if (response.ok) {
-            console.log(`Line item ${uuid} successfully updated with a subtotal of $${subtotal.toFixed(2)}.`);
+            console.log(`Line item ${uuid} successfully updated.`);
+
+            // Update the corresponding line item's subtotal in the DOM
+            const row = document.querySelector(`[data-line-item-uuid="${uuid}"]`);
+            if (row) {
+                const subtotalCell = row.querySelector(".subtotal-cell");
+                subtotalCell.textContent = `$${subtotal.toFixed(2)}`;
+            }
+
+            // Recalculate the total after updating the subtotal
+            updateTotal();
         } else {
             throw new Error(`Failed to update line item ${uuid}`);
         }
@@ -142,6 +164,7 @@ function addLineItem() {
             <input type="number" value="1" min="1" class="quantity-input" onchange="handleLineItemChange(event)">
         </td>
         <td class="price-cell">$0.00</td>
+        <td class="subtotal-cell">$0.00</td>
         <td>
             <button onclick="removeLineItem(event)">Remove</button>
             <input type="hidden" class="line-item-uuid" value="${lineItemUUID}">
@@ -152,38 +175,80 @@ function addLineItem() {
     updateDropdowns();
 }
 
-// Update the price for a line item and recalculate totals
 function updatePrice(event) {
     const row = event.target.closest("tr");
     const productSelect = row.querySelector(".product-select");
     const quantityInput = row.querySelector(".quantity-input");
     const priceCell = row.querySelector(".price-cell");
+    const subtotalCell = row.querySelector(".subtotal-cell");
 
+    // Get unit price from selected product
     const selectedOption = productSelect.selectedOptions[0];
-    const productPrice = parseFloat(selectedOption?.dataset.price || 0);
-    const quantity = parseInt(quantityInput.value, 10) || 1;
+    const productPrice = parseFloat(selectedOption?.dataset.price || 0); // Fixed unit price
 
-    // Update line item price
-    const lineItemPrice = productPrice * quantity;
-    priceCell.textContent = `$${lineItemPrice.toFixed(2)}`;
+    // Log debug information
+    console.log("Product Price (Fixed):", productPrice);
+    console.log("Current Quantity:", quantityInput.value);
 
-    // Update total
+    // Ensure the Price cell ALWAYS displays fixed unit price
+    priceCell.textContent = `$${productPrice.toFixed(2)}`;
+    console.log("Price Cell Content (After Fix):", priceCell.textContent);
+
+    // Calculate and update subtotal
+    const quantity = parseInt(quantityInput.value, 10) || 1; // Default to 1 if invalid
+    const lineItemSubtotal = productPrice * quantity;
+
+    console.log("Calculated Subtotal (Price × Quantity):", lineItemSubtotal);
+    subtotalCell.textContent = `$${lineItemSubtotal.toFixed(2)}`;
+
+    // Log cell values after update
+    console.log("Subtotal Cell Content (After Update):", subtotalCell.textContent);
+
+    // Update the grand total
     updateTotal();
 }
 
-// Update the total price for all line items
 function updateTotal() {
-    const priceCells = document.querySelectorAll(".price-cell");
+    const subtotalCells = document.querySelectorAll(".subtotal-cell");
     const totalElement = document.getElementById("order-total");
     let total = 0;
 
-    priceCells.forEach((cell) => {
-        const price = parseFloat(cell.textContent.replace("$", "")) || 0;
-        total += price;
+    subtotalCells.forEach((cell) => {
+        const subtotal = parseFloat(cell.textContent.replace("$", "")) || 0;
+        total += subtotal;
     });
 
-    totalElement.textContent = `$${total.toFixed(2)}`;
+    totalElement.textContent = `Total: $${total.toFixed(2)}`;
 }
+
+function removeRow(event) {
+    const row = event.target.closest("tr");
+    if (row) {
+        row.remove();
+        updateTotal(); // Update total after removing a row
+    }
+}
+
+// Add event listeners for quantity changes and row removal
+document.addEventListener("input", (event) => {
+    if (event.target.classList.contains("quantity-input")) {
+        updatePrice(event);
+    }
+});
+
+document.addEventListener("change", (event) => {
+    if (event.target.classList.contains("product-select")) {
+        updatePrice(event);
+    }
+});
+
+document.addEventListener("click", (event) => {
+    if (event.target.classList.contains("delete-button")) {
+        removeRow(event);
+    }
+});
+
+
 
 // Submit the entire order to the backend
 function submitOrder() {
